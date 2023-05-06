@@ -1,0 +1,31 @@
+#+title: org-roam-ph
+#+author: aatmunbaxi
+#+created: Sat May 06, 2023
+
+* What is this?
+This repo serves as a proof of concept for running persistent homology (PH) analysis on zettelkasten networks built from the emacs program =org-roam=.
+The zettelkasten has a graph structure =(G,V)=, where =G= is the collection of zettels as nodes, and =V= is the collection of edges.
+An edge between two zettels exists if one of the zettels contains a backlink to the other (more on this later).
+
+The zettelkasten philosophy promises to "reveal hidden structure" in large collections of interlinked notes.
+As one continues to add zettels and backlinks, the density of local regions of the graph change, forming clusters.
+These changes in local density also affect the global "shape" of the graph.
+As the number of zettels grows, the zettelkasten becomes a sort of "second brain" of interlinked ideas, allowing seamless transition between ideas.
+So the theory goes, anyway.
+
+In comes topological data analysis (TDA), and more specifically, persistent homology.
+PH is a somewhat recently developed technique to extract topological information from discrete point cloud data.
+The hypothesis is that the overall "shape" of how point clouds sit in their respective feature spaces contain useful information about the data itself.
+PH hopes to extract this information, without knowing anything else /a priori/ about the point cloud.
+PH techniques exist for graphs as well.
+
+The hope of this repo is that running PH on a zettel built from =org-roam= might give useful information about large zettels, where visual inspection of the graph (say, with =org-roam-ui=) isn't feasible.
+
+* Dependencies
+- Python 3+
+- [[https://github.com/karlicoss/orgparse][orgparse]], an =org-mode= parses for python
+- =scipy=
+- [[https://ripser.scikit-tda.org/en/latest/][ripser.py]], a lean PH library
+* Future Directions
+- Filter to subgraphs of the zettel by tag, property, or any other number of =org= properties.
+- In theory, nothing is stopping this from being specific to =org-mode=. So long as a parser exists for zettels made by any program (like Obsidian, Roam Research, etc), a graph can be constructed.
