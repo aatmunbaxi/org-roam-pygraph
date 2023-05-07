@@ -1,11 +1,13 @@
 #!/usr/bin/python
 
 import os , glob
+import warnings
+
 import numpy as np
 
 from orgparse import load as orgload
 
-from gtda.graphs import GraphGeodesicDistance
+from scipy.sparse.csgraph import shortest_path
 
 class RoamGraph():
     """
@@ -18,27 +20,40 @@ class RoamGraph():
     tags : str list
         list of tags to exclude
     """
-    def __init__(self, dirname, tags = None , exclude = False ):
+    def __init__(self, dirname, tags = None , exclude = False ,recurse = False):
         super(RoamGraph, self).__init__()
+
         self.dirname = dirname
         self.tags= tags
+        self.exclude = exclude
 
-        filenames = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "*.org")]
+        if recurse:
+            filenames = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "**/*.org", recursive=recurse)]
+        else:
+            filenames = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "*.org")]
+
+
+        # filenames = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "*.org")]
         fileobs = [orgload(fname) for fname in filenames]
         roamIDs = [ f.get_property('ID') for f in fileobs ]
 
         self.nodedata = [(a,b,c) for (a,b,c) in zip(filenames, fileobs, roamIDs)]
 
-        if tags:
-            bool_tags_list = [self.contains_tag(i) for i in range(len(self.nodedata))]
-            if exclude:
-                bool_tags_list = [not i for i in bool_tags_list]
+        self.__cleanup_node_data()
 
-            self.nodedata = [i for (i,v) in zip(self.nodedata, bool_tags_list) if v]
+        if self.tags:
+            self.__filter_tags()
 
 
+    def __filter_tags(self):
+        bool_tags_list = [self.contains_tag(i) for i in range(len(self.nodedata))]
+        if self.exclude:
+            bool_tags_list = [not i for i in bool_tags_list]
 
-    def adjacency_matrix(self, directed = False):
+        self.nodedata = [i for (i,v) in zip(self.nodedata, bool_tags_list) if v]
+
+
+    def adjacency_matrix(self, directed = False, transpose = False):
         """
         Builds adjacency matrix of org-roam notes.
 
@@ -53,6 +68,9 @@ class RoamGraph():
                 for j in range(N):
                     if i != j:
                         graph[i,j] = self.__adjacency_entry(i,j,directed = True)
+            if transpose:
+                return graph.transpose()
+
             return graph
 
         for i in range(N):
@@ -62,13 +80,13 @@ class RoamGraph():
 
         return graph
 
-    def distance_matrix(self, directed = False):
+    def distance_matrix(self, directed = False, transpose= False):
         """
         Computes distance matrix of graph
 
         directed -- Consider graph as directed (default False)
         """
-        return GraphGeodesicDistance(directed=directed).fit_transform([self.adjacency_matrix(directed=directed)])
+        return shortest_path(self.adjacency_matrix(directed=directed) , directed=directed)
 
     def get_fnames(self):
         """
@@ -103,3 +121,12 @@ class RoamGraph():
                     return 1
 
         return np.inf
+
+    def __cleanup_node_data(self):
+        nones = []
+        for i in self.nodedata:
+            if i[2] is None:
+                warnings.warn(f"{os.path.basename(i[0])} has no ID property. Removing from graph.")
+                nones.append(i)
+
+        self.nodedata = [i for i in self.nodedata if i not in nones]
