@@ -19,7 +19,8 @@ PH algorithms exist for graphs as well, where distances between points (nodes) c
 The hypothesis of this repo is that running PH on a zettelkasten might give information about large zettels, where visual inspection of the graph (say, using =org-roam-ui=) isn't feasible.
 
 * Capabilities
-Really all this library does is compute the graph representation of a network.
+Really all this library does is compute the graph representation of a network, but =giotto-tda= gives a set of
+nice and efficient methods to compute some things I shouldn't try and write myself.
 - Compute an adjacency matrix of the zettelkasten network (directed or undirected)
 - Compute distance matrix of network (directed or undirected)
 - Compute and visualize persistence diagram of network
@@ -27,10 +28,11 @@ Really all this library does is compute the graph representation of a network.
 
 * Dependencies
 - Python 3+
-- [[https://github.com/karlicoss/orgparse][orgparse]], an =org-mode= parses for python
+- [[https://github.com/karlicoss/orgparse][orgparse]], an =org-mode= parser for python
 - [[https://giotto-ai.github.io/gtda-docs/latest/index.html][giotto-tda]], a python TDA library
 
 * Wishlist
 - In theory, nothing is stopping this from being specific to =org-mode=. So long as a parser exists for zettels made by any program (like Obsidian, Roam Research, etc), a graph can be constructed.
 - More robust filtering options by other org properties, or maybe even custom org properties
+- Give ability to interface with emacs
 - Housekeeping, like exception handling and edge case handling

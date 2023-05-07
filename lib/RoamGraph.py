@@ -1,7 +1,8 @@
-#!/usr/bin/python3.10
+#!/usr/bin/python
 
 import os , glob
 import numpy as np
+
 from orgparse import load as orgload
 
 from gtda.homology import VietorisRipsPersistence
@@ -39,7 +40,7 @@ class RoamGraph():
             bool_tags_list = [self.contains_tag(i) for i in range(len(self.nodedata))]
             if exclude:
                 bool_tags_list = [not i for i in bool_tags_list]
-                # print(bool_tags_list)
+
             self.nodedata = [i for (i,v) in zip(self.nodedata, bool_tags_list) if v]
 
 
@@ -54,7 +55,6 @@ class RoamGraph():
 
         graph = np.zeros((N,N))
 
-        # Directed graph construction
         if directed:
             for i in range(N):
                 for j in range(N):
@@ -62,7 +62,6 @@ class RoamGraph():
                         graph[i,j] = self.__adjacency_entry(i,j,directed = True)
             return graph
 
-        # Undirected graph construction
         for i in range(N):
             for j in range(i+1 , N):
                 graph[i,j] = self.__adjacency_entry(i,j, directed = False)
@@ -97,22 +96,14 @@ class RoamGraph():
         """
         Determines if node at index idx contains any exclude tags
         """
-        # node_body = ''
-        # TODO Allow arbitrary depth specification here?
-        # for subheading in self.nodedata[idx][1].root:
-        #     node_body += subheading.get_body(format='raw')
-
         body = self.nodedata[idx][1].root.get_body(format='raw')
         return any(tag in body for tag in self.tags)
 
     def __adjacency_entry(self, i,j, directed = False):
-
-        # print(i,j)
         for subheading in self.nodedata[i][1].root:
             if self.nodedata[j][2] in subheading.get_body(format='raw'):
                 return 1
 
-        # Check if there is a link point to ith node in jth node body
         if not directed:
             for subheading in self.nodedata[j][1].root:
                 if self.nodedata[i][2] in subheading.get_body(format='raw'):
