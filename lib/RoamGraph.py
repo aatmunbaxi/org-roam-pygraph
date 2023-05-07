@@ -7,6 +7,8 @@ import numpy as np
 
 from orgparse import load as orgload
 
+from lib.RoamNode import RoamNode as Node
+
 from scipy.sparse.csgraph import shortest_path
 
 class RoamGraph():
@@ -24,34 +26,28 @@ class RoamGraph():
         super(RoamGraph, self).__init__()
 
         self.dirname = dirname
-        self.tags= tags
+        self.filter_tags= tags
         self.exclude = exclude
 
         if recurse:
-            filenames = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "**/*.org", recursive=recurse)]
+            filepaths = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "**/*.org", recursive=recurse)]
         else:
-            filenames = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "*.org")]
+            filepaths = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "*.org")]
 
-
-        # filenames = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "*.org")]
-        fileobs = [orgload(fname) for fname in filenames]
-        roamIDs = [ f.get_property('ID') for f in fileobs ]
-
-        self.nodedata = [(a,b,c) for (a,b,c) in zip(filenames, fileobs, roamIDs)]
+        self.nodes = [ Node(path) for path in filepaths ]
 
         self.__cleanup_node_data()
 
-        if self.tags:
+        if self.filter_tags:
             self.__filter_tags()
 
 
     def __filter_tags(self):
-        bool_tags_list = [self.contains_tag(i) for i in range(len(self.nodedata))]
+        bool_tags_list = [self.nodes[i].has_tags(self.filter_tags) for i in range(len(self.nodes))]
         if self.exclude:
             bool_tags_list = [not i for i in bool_tags_list]
 
-        self.nodedata = [i for (i,v) in zip(self.nodedata, bool_tags_list) if v]
-
+        self.nodes = [i for (i,v) in zip(self.nodes, bool_tags_list) if v]
 
     def adjacency_matrix(self, directed = False, transpose = False):
         """
@@ -59,7 +55,7 @@ class RoamGraph():
 
         directed -- whether to consider the zettel graph as directed (default False)
         """
-        N = len(self.nodedata)
+        N = len(self.nodes)
 
         graph = np.zeros((N,N))
 
@@ -92,41 +88,39 @@ class RoamGraph():
         """
         Get filenames of graph
         """
-        return [node[1] for node in self.nodedata]
+        return [node.fname for node in self.nodes]
 
-    def get_nodedata(self):
-        return self.nodedata
+    def get_nodes(self):
+        return self.nodes
 
     def get_IDs(self):
         """
         Gets org-roam IDs of graph
         """
-        return [node[2] for node in self.nodedata]
+        return [node.id for node in self.nodes]
 
-    def contains_tag(self,idx):
-        """
-        Determines if node at index idx contains any exclude tags
-        """
-        body = self.nodedata[idx][1].root.get_body(format='raw')
-        return any(tag in body for tag in self.tags)
+    # def contains_tag(self,idx):
+    #     """
+    #     Determines if node at index idx contains any exclude filter_tags
+    #     """
+    #     body = self.nodes[i].body(fmt='raw')
+    #     return any(tag in body for tag in self.filter_tags)
 
     def __adjacency_entry(self, i,j, directed = False):
-        for subheading in self.nodedata[i][1].root:
-            if self.nodedata[j][2] in subheading.get_body(format='raw'):
-                return 1
+        if self.nodes[i].id in self.nodes[j].body():
+            return 1
 
         if not directed:
-            for subheading in self.nodedata[j][1].root:
-                if self.nodedata[i][2] in subheading.get_body(format='raw'):
-                    return 1
+            if self.nodes[j].id in self.nodes[i].body():
+                return 1
 
         return np.inf
 
     def __cleanup_node_data(self):
         nones = []
-        for i in self.nodedata:
-            if i[2] is None:
-                warnings.warn(f"{os.path.basename(i[0])} has no ID property. Removing from graph.")
+        for node in self.nodes:
+            if node.fob is None:
+                warnings.warn(f"{os.path.basename(node.fname)} has no ID property. Removing from graph.")
                 nones.append(i)
 
-        self.nodedata = [i for i in self.nodedata if i not in nones]
+        self.nodes = [i for i in self.nodes if i not in nones]
