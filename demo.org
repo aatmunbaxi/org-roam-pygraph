@@ -69,7 +69,7 @@ dist_matrix = network.distance_matrix(directed = False)
 By default, the adjacency matrix has value =np.inf= for non-incidental nodes, so we need to change those to =0= to visualize with =networkx=
 
 Load it as a =networkx= graph and check the viz.
-#+begin_src python :session python :results file :var f="images/viz.png"
+#+begin_src python :session python :exports both :results file :var f="images/viz.png"
 adj_matrix[np.isinf(adj_matrix)] =0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
@@ -100,9 +100,14 @@ g
 ** Filtering
 At present, you may filter by tags to match exactly and/or tags that match a compiled python regex.
 For example, if I want to the graph to those nodes that only contain the filetag =algebraic-geometry=, here is what that would look like.
-#+begin_src python :session python :results file :var h="images/viz_alg-geo-exact.png"
+#+begin_src python :session python :exports code
 tags = ['algebraic-geometry']
 network = RoamGraph(ROAM_DIR, tags_exact = tags, include_exact = True)
+#+end_src
+
+#+RESULTS:
+
+#+begin_src python :session python :exports results :results file :var h="images/viz_alg-geo-exact.png"
 
 adj_matrix = network.adjacency_matrix(directed = False)
 
@@ -113,17 +118,22 @@ plt.clf()
 nx.draw(G,with_labels=True)
 plt.savefig(h)
 h
+
 #+end_src
 
 #+RESULTS:
 [[file:images/viz_alg-geo-exact.png]]
 
-Or I can filter by regex to exclude all things =algebraic=.
-#+begin_src python :session python :results file :var k="images/viz_alg-geo-rx.png"
-rx_tags = [re.compile(r"algebraic*")]
-network = RoamGraph(ROAM_DIR, tags_rx = rx_tags, include_rx = True)
+Or I can filter by regex to exclude all things related to =cat=.
+#+begin_src python :session python :exports code
+rx_tags = [re.compile("cat*")]
+network = RoamGraph(ROAM_DIR, tags_rx = rx_tags, include_rx = False)
+#+end_src
 
-adj_matrix = network.adjacency_matrix(directed = False)
+#+RESULTS:
+
+#+begin_src python :session python :exports results :results file :var k="images/viz_cat-rx.png"
+adj_matrix = network.adjacency_matrix()
 
 adj_matrix[np.isinf(adj_matrix)] =0
 G = nx.from_numpy_array(adj_matrix)
@@ -135,4 +145,4 @@ k
 #+end_src
 
 #+RESULTS:
-[[file:images/viz_alg-geo-rx.png]]
+[[file:images/viz_cat-rx.png]]
