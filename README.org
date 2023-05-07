@@ -1,38 +1,23 @@
-#+title: org-roam-ph
+#+title: org-roam-pygraph
 #+author: aatmunbaxi
 #+created: Sat May 06, 2023
 
 * What is this?
-This repo is a proof of concept for running persistent homology (PH) analysis on zettelkasten networks built from the emacs program =org-roam=.
+Inspired somewhat by [[https://github.com/org-roam/org-roam-ui][org-roam-ui]], this repo provides a python library to convert org-roam collections into graphs, represented by their adjacency matrices.
 
-A zettelkasten naturally has a graph structure =(G,V)=, where =G= is the collection of zettels as nodes, and =V= is the collection of edges.
-An edge between two zettels exists if one of the zettels contains a backlink to the other (more on this later).
-
-The zettelkasten philosophy promises to reveal "hidden structure" in collections of interlinked notes.
-Continuing to add zettels and backlinks affects the density of local regions of the graph change, forming dense cliques.
-These changes in local density also affect the global "shape" of the graph.
-
-PH is a technique to extract topological information from discrete data.
-The hypothesis is that the "shape" of point clouds in their feature spaces contain useful information about the data itself, which PH extracts.
-PH algorithms exist for graphs as well, where distances between points (nodes) come from weights of geodesic paths between them.
-
-The hypothesis of this repo is that running PH on a zettelkasten might give information about large zettels, where visual inspection of the graph (say, using =org-roam-ui=) isn't feasible.
-
-* Capabilities
-Really all this library does is compute the graph representation of a network, but =giotto-tda= gives a set of
-nice and efficient methods to compute some things I shouldn't try and write myself.
-- Compute an adjacency matrix of the zettelkasten network (directed or undirected)
-- Compute distance matrix of network (directed or undirected)
-- Compute and visualize persistence diagram of network
+See a demo [[file:demo.org][here]].
+* Features
+- Adjacency matrix of the org-roam network (directed or undirected)
+- Distance matrix of network (directed or undirected)
 - Filter network by tags, inclusive or exclusive
 
 * Dependencies
-- Python 3+
+- Python 3.5+
 - [[https://github.com/karlicoss/orgparse][orgparse]], an =org-mode= parser for python
-- [[https://giotto-ai.github.io/gtda-docs/latest/index.html][giotto-tda]], a python TDA library
+- =scipy=
 
 * Wishlist
-- In theory, nothing is stopping this from being specific to =org-mode=. So long as a parser exists for zettels made by any program (like Obsidian, Roam Research, etc), a graph can be constructed.
 - More robust filtering options by other org properties, or maybe even custom org properties
+  - Regex might be a good next step
 - Give ability to interface with emacs
 - Housekeeping, like exception handling and edge case handling

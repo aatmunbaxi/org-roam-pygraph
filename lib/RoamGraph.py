@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os , glob
+import os , glob , re
 import warnings
 
 import numpy as np
@@ -19,15 +19,47 @@ class RoamGraph():
     -----------
     dirname : str
         name of directory to search
-    tags : str list
-        list of tags to exclude
+    recurse : bool
+        recurse into dirname
+    ex_tags : str list
+        list of tags to filter by. Regex supported
+    include_ex : bool
+        whether to exclude tags or include
+    ex_tags : compiled python regex list
+        list of regexes to filter tags by
+    include_rx : bool
+        include regex matched nodes
+    nodes : list RoamNode
+        list of RoamNodes
     """
-    def __init__(self, dirname, tags = None , exclude = False ,recurse = False):
+    def __init__(self, dirname,
+               recurse = False,
+               tags_exact = None ,
+               include_exact = True ,
+               tags_rx = [],
+               include_rx = True,
+               ):
+        """
+        Constructor for RoamGraph
+
+        Params
+        dirname -- directory to search for .org files
+        recurse (opt) -- whether to recurse in directory of not
+        tags_exact (opt) -- list of str to match roam tags exactly
+        include_exact (opt) -- bool. Include exact matched tags in graph
+        tags_rx (opt) -- list of compiled python regexes to match in roam tags
+        include_rx (opt) -- bool. Include regex matched tags in graph
+        """
+
         super(RoamGraph, self).__init__()
 
         self.dirname = dirname
-        self.filter_tags= tags
-        self.exclude = exclude
+
+        self.ex_tags = tags_exact
+        self.rx_tags= tags_rx
+
+        self.include_ex = include_exact
+        self.include_rx = include_rx
 
         if recurse:
             filepaths = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "**/*.org", recursive=recurse)]
@@ -38,29 +70,47 @@ class RoamGraph():
 
         self.__cleanup_node_data()
 
-        if self.filter_tags:
-            self.__filter_tags()
+        if self.ex_tags:
+            self.__filter_ex_tags()
 
+        if self.rx_tags:
+            self.__filter_rx_tags()
 
-    def __filter_tags(self):
-        bool_tags_list = [self.nodes[i].has_tags(self.filter_tags) for i in range(len(self.nodes))]
-        if self.exclude:
+    def __filter_ex_tags(self):
+        """
+        Filters exact tags from node list
+        """
+        bool_tags_list = [self.nodes[i].has_exact_tags(self.ex_tags) for i in range(len(self.nodes))]
+        if not self.include_ex:
+            bool_tags_list = [not i for i in bool_tags_list]
+
+        self.nodes = [i for (i,v) in zip(self.nodes, bool_tags_list) if v]
+
+    def __filter_rx_tags(self):
+        """
+        Filters exact tags from node list
+        """
+        bool_tags_list = [self.nodes[i].has_rx_tags(self.rx_tags) for i in range(len(self.nodes))]
+        if not self.include_rx:
             bool_tags_list = [not i for i in bool_tags_list]
 
         self.nodes = [i for (i,v) in zip(self.nodes, bool_tags_list) if v]
 
     def adjacency_matrix(self, directed = False, transpose = False):
         """
-        Builds adjacency matrix of org-roam notes.
+        Builds adjacency matrix of graph nodes
 
         directed -- whether to consider the zettel graph as directed (default False)
+        transpose -- reverse direction of graph paths (default False)
+
+        Returns graphs adjacency matrix
         """
         N = len(self.nodes)
 
         graph = np.zeros((N,N))
 
         if directed:
-            for i in range(N):
+            for i in range(1,N):
                 for j in range(N):
                     if i != j:
                         graph[i,j] = self.__adjacency_entry(i,j,directed = True)
@@ -81,6 +131,9 @@ class RoamGraph():
         Computes distance matrix of graph
 
         directed -- Consider graph as directed (default False)
+        transpose -- reverse direction of graph paths (default False)
+
+        Returns graphs distance matrix
         """
         return shortest_path(self.adjacency_matrix(directed=directed) , directed=directed)
 
@@ -91,22 +144,25 @@ class RoamGraph():
         return [node.fname for node in self.nodes]
 
     def get_nodes(self):
+        """
+        Returns list of nodes
+        """
         return self.nodes
 
     def get_IDs(self):
         """
-        Gets org-roam IDs of graph
+        Returns list of node IDs
         """
         return [node.id for node in self.nodes]
 
-    # def contains_tag(self,idx):
-    #     """
-    #     Determines if node at index idx contains any exclude filter_tags
-    #     """
-    #     body = self.nodes[i].body(fmt='raw')
-    #     return any(tag in body for tag in self.filter_tags)
+    def get_names(self):
+        return [node.name for node in self.nodes]
+
 
     def __adjacency_entry(self, i,j, directed = False):
+        """
+        Determines if two nodes are adjacent
+        """
         if self.nodes[i].id in self.nodes[j].body():
             return 1
 
@@ -120,7 +176,10 @@ class RoamGraph():
         nones = []
         for node in self.nodes:
             if node.fob is None:
-                warnings.warn(f"{os.path.basename(node.fname)} has no ID property. Removing from graph.")
-                nones.append(i)
+                warnings.warn(f"{os.path.basename(node.fname)} has bad orgparse. Removed from graph.")
+                nones.append(node)
+            if node.id is None:
+                warnings.warn(f"{os.path.basename(node.fname)} has malformed or no ID property. Removed from graph.")
+                nones.append(node)
 
         self.nodes = [i for i in self.nodes if i not in nones]
