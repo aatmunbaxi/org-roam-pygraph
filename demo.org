@@ -1,0 +1,138 @@
+#+title: =org-roam-pygraph= demo
+#+author: aatmunbaxi
+
+Here we give a short demo on the capabilities of =org-roam-pygraph=.
+
+Import the libraries we'll need to demo stuff.
+#+begin_src python :session python :exports code
+import re
+import numpy as np
+
+from lib.RoamGraph import RoamGraph
+
+# VR persistence for undirected graphs
+from gtda.homology import VietorisRipsPersistence
+
+# FP persistence for directed graphs
+from gtda.homology import FlagserPersistence
+
+# Plotting of persistence diagrams
+from gtda.plotting import plot_diagram
+
+# For visualizing the graph
+import matplotlib.pyplot as plt
+import networkx as nx
+#+end_src
+
+#+RESULTS:
+
+
+* Basic functionality
+
+We first need a directory to search for =org-roam= files.
+(Note we need the trailing "/" and an absolute path)
+#+begin_src python :session python :exports code
+ROAM_DIR = "/your/directory/here/"
+#+end_src
+
+#+RESULTS:
+
+#+begin_src python :session python :exports none
+ROAM_DIR = "/home/aatmun/Documents/org/roam/"
+#+end_src
+
+#+RESULTS:
+
+Then we'll simply create our graph object.
+#+begin_src python :session python :exports none
+network = RoamGraph(ROAM_DIR)
+#+end_src
+
+#+RESULTS:
+
+** Undirected graphs
+
+We can compute the adjacency matrix and visualize it with =networkx=.
+#+begin_src python :session python :exports none
+adj_matrix = network.adjacency_matrix(directed = False)
+#+end_src
+
+#+RESULTS:
+
+Or we can compute a distance matrix.
+#+begin_src python :session python :exports both
+dist_matrix = network.distance_matrix(directed = False)
+#+end_src
+
+#+RESULTS:
+
+By default, the adjacency matrix has value =np.inf= for non-incidental nodes, so we need to change those to =0= to visualize with =networkx=
+
+Load it as a =networkx= graph and check the viz.
+#+begin_src python :session python :results file :var f="images/viz.png"
+adj_matrix[np.isinf(adj_matrix)] =0
+G = nx.from_numpy_array(adj_matrix)
+plt.cla()
+plt.clf()
+nx.draw(G,with_labels=True)
+plt.savefig(f)
+f
+#+end_src
+
+#+RESULTS:
+[[file:images/viz.png]]
+
+** Directed Graphs
+Of course, all the above has a directed version!
+#+begin_src python :session python :exports both :results file :var g="images/viz_directed.png"
+adj_matrix_directed = network.adjacency_matrix(directed = True)
+adj_matrix_directed[np.isinf(adj_matrix_directed)] = 0
+G_directed = nx.from_numpy_array(adj_matrix_directed, create_using=nx.DiGraph)
+plt.cla()
+plt.clf()
+nx.draw(G_directed,with_labels=True)
+plt.savefig(g)
+g
+#+end_src
+
+#+RESULTS:
+[[file:images/viz_directed.png]]
+** Filtering
+At present, you may filter by tags to match exactly and/or tags that match a compiled python regex.
+For example, if I want to the graph to those nodes that only contain the filetag =algebraic-geometry=, here is what that would look like.
+#+begin_src python :session python :results file :var h="images/viz_alg-geo-exact.png"
+tags = ['algebraic-geometry']
+network = RoamGraph(ROAM_DIR, tags_exact = tags, include_exact = True)
+
+adj_matrix = network.adjacency_matrix(directed = False)
+
+adj_matrix[np.isinf(adj_matrix)] =0
+G = nx.from_numpy_array(adj_matrix)
+plt.cla()
+plt.clf()
+nx.draw(G,with_labels=True)
+plt.savefig(h)
+h
+#+end_src
+
+#+RESULTS:
+[[file:images/viz_alg-geo-exact.png]]
+
+Or I can filter by regex to exclude all things =algebraic=.
+#+begin_src python :session python :results file :var k="images/viz_alg-geo-rx.png"
+rx_tags = [re.compile(r"algebraic*")]
+network = RoamGraph(ROAM_DIR, tags_rx = rx_tags, include_rx = True)
+
+adj_matrix = network.adjacency_matrix(directed = False)
+
+adj_matrix[np.isinf(adj_matrix)] =0
+G = nx.from_numpy_array(adj_matrix)
+plt.cla()
+plt.clf()
+nx.draw(G,with_labels=True)
+plt.savefig(k)
+k
+#+end_src
+
+#+RESULTS:
+[[file:images/viz_alg-geo-rx.png]]
