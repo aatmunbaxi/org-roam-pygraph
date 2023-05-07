@@ -5,14 +5,7 @@ import numpy as np
 
 from orgparse import load as orgload
 
-from gtda.homology import VietorisRipsPersistence
-from gtda.homology import FlagserPersistence
-
 from gtda.graphs import GraphGeodesicDistance
-
-from gtda.plotting import plot_diagram
-import plotly.io as pio
-
 
 class RoamGraph():
     """
