@@ -1,10 +1,9 @@
 #!/usr/bin/python
 import os , glob , re
 import warnings
+import sqlite3 as sql
 
 import numpy as np
-
-from orgparse import load as orgload
 
 from lib.RoamNode import RoamNode as Node
 
@@ -31,91 +30,92 @@ class RoamGraph():
     nodes : list RoamNode
         list of RoamNodes
     """
-    def __init__(self, dirname,
-               recurse = False,
-               tags_exact = None ,
-               include_exact = True ,
-               tags_rx = None,
-               include_rx = True,
-               orphans = True
-               ):
+    def __init__(self, db,
+               tags = None):
         """
         Constructor for RoamGraph
 
         Params
-        dirname -- directory to search for .org files (required)
-        recurse (opt) -- whether to recurse in directory of not (default False)
-        tags_exact (opt) -- list of str to match roam tags exactly (default None)
-        include_exact (opt) -- bool. Include exact matched tags in graph (default True)
-        tags_rx (opt) -- list of compiled python regexes to match in roam tags (default None)
-        include_rx (opt) -- bool. Include regex matched tags in graph (default True)
-        orphans (opt) -- bool. Keep orphans (nodes with no incident edges) in graph (default True)
-                        Note: You can do this after constructing the graph. It is no more efficient to
-                        initialize with orphans = False
+        db -- path to org-roam db (required)
         """
 
         super(RoamGraph, self).__init__()
 
-        self.dirname = dirname
+        self.db_path = os.path.expanduser(db)
 
-        self.ex_tags = tags_exact
-        self.rx_tags= tags_rx
+        id_list = self.__init_ids(self.db_path)
 
-        self.include_ex = include_exact
-        self.include_rx = include_rx
+        fname_list = self.__init_fnames(self.db_path)
 
-        if recurse:
-            filepaths = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "**/*.org", recursive=recurse)]
-        else:
-            filepaths = [os.path.join(dirname ,f) for f in glob.glob(dirname  + "*.org")]
+        titles_list = self.__init_titles(self.db_path)
 
-        self.nodes = [ Node(path) for path in filepaths ]
+        tags_list = self.__init_tags(self.db_path)
 
-        self.__cleanup_node_data()
+        links_to_list = self.__init_links_to(self.db_path)
 
-        if self.ex_tags:
-            self.__filter_ex_tags()
+        self.nodes = [ Node(a,b,c,d,e) for (a,b,c,d,e) in zip(fname_list, titles_list, id_list, tags_list, links_to_list) ]
 
-        if self.rx_tags:
-            self.__filter_rx_tags()
+    def get_nodes(self):
+        return self.nodes
 
-        if not orphans:
-            self.remove_orphans()
+    def __init_ids(self,dbpath):
+        id_query = 'SELECT id FROM nodes ORDER BY id ASC;'
+        try:
+            with sql.connect(dbpath, uri=True) as con:
+                csr = con.cursor()
+                query = csr.execute(id_query)
+                return [i[0].replace('"','') for i in query.fetchall()]
 
-    def __filter_ex_tags(self):
-        """
-        Filters exact tags from node list
-        """
-        bool_tags_list = [self.nodes[i].has_exact_tags(self.ex_tags) for i in range(len(self.nodes))]
-        if not self.include_ex:
-            bool_tags_list = [not i for i in bool_tags_list]
+        except sql.Error as e:
+            print("Connection failed: ",e)
 
-        self.nodes = [i for (i,v) in zip(self.nodes, bool_tags_list) if v]
+    def __init_fnames(self,dbpath):
+        fname_query = 'SELECT file FROM nodes ORDER BY id ASC;'
+        try:
+            with sql.connect(dbpath, uri=True) as con:
+                csr = con.cursor()
+                query = csr.execute(fname_query)
+                return [i[0].replace('"','') for i in query.fetchall()]
 
-    def __filter_rx_tags(self):
-        """
-        Filters exact tags from node list
-        """
-        bool_tags_list = [self.nodes[i].has_rx_tags(self.rx_tags) for i in range(len(self.nodes))]
-        if not self.include_rx:
-            bool_tags_list = [not i for i in bool_tags_list]
+        except sql.Error as e:
+            print("Connection failed: ",e)
 
-        self.nodes = [i for (i,v) in zip(self.nodes, bool_tags_list) if v]
+    def __init_titles(self,dbpath):
+        title_query = 'SELECT title FROM nodes ORDER BY id ASC;'
+        try:
+            with sql.connect(dbpath, uri=True) as con:
+                csr = con.cursor()
+                query = csr.execute(title_query)
+                return [i[0].replace('"','') for i in query.fetchall()]
 
-    def remove_orphans(self):
-        """
-        Removes loners (nodes with no incident edges) from graph
-        """
-        mat = self.adjacency_matrix(directed = False)
-        N = len(mat)
-        mat += np.diag(np.full(N, np.inf) )
-        to_remove = []
-        for i in range(N):
-            if np.all(mat[i] == np.inf, axis=0):
-                to_remove.append(i)
+        except sql.Error as e:
+            print("Connection failed: ",e)
 
-        self.nodes = [self.nodes[i] for i in range(len(self.nodes)) if i not in to_remove]
+    def __init_tags(self,dbpath):
+        tags_query = 'SELECT GROUP_CONCAT(tag) FROM tags GROUP BY node_id ORDER BY node_id ASC;'
+        try:
+            with sql.connect(dbpath, uri=True) as con:
+                csr = con.cursor()
+                query = csr.execute(tags_query)
+                clean = lambda s: s.replace('"', '')
+                return [set(map(clean, i[0].split(','))) for i in query.fetchall()]
 
+        except sql.Error as e:
+            print("Connection failed: ",e)
+
+    def __init_links_to(self,dbpath):
+        links_to_query = 'SELECT n.id, GROUP_CONCAT(l.dest) FROM nodes n LEFT JOIN links l ON n.id = l.source GROUP BY n.id ORDER BY n.id ;'
+        try:
+            with sql.connect(dbpath, uri=True) as con:
+                csr = con.cursor()
+                query = csr.execute(links_to_query)
+                clean = lambda s: s.replace('"', '')
+                links = query.fetchall()
+
+                return [ set(map(clean,i[1].split(','))) if i[1] else {} for i in links ]
+
+        except sql.Error as e:
+            print("Connection failed: ",e)
 
     def adjacency_matrix(self, directed = False, transpose = False):
         """
@@ -134,7 +134,7 @@ class RoamGraph():
             for i in range(1,N):
                 for j in range(N):
                     if i != j:
-                        graph[i,j] = self.__adjacency_entry(i,j,directed = True)
+                        graph[i,j] = 1 if self.nodes[i].links(self.nodes[j]) else np.inf
             if transpose:
                 return graph.transpose()
 
@@ -142,7 +142,8 @@ class RoamGraph():
 
         for i in range(N):
             for j in range(i+1 , N):
-                graph[i,j] = self.__adjacency_entry(i,j, directed = False)
+                # print(type(self.nodes[i]) , type(self.nodes[j]))
+                graph[i,j] = 1 if self.nodes[i].links(self.nodes[j]) else np.inf
                 graph[j,i] = graph[i,j]
 
         return graph
@@ -158,10 +159,15 @@ class RoamGraph():
         """
         return shortest_path(self.adjacency_matrix(directed=directed) , directed=directed)
 
-    def get_fnames(self):
+    def get_fnames(self,base = True):
         """
         Get filenames of graph
+
+        base -- basenames of files (default True)
         """
+        if base:
+            return [os.path.basename(node.fname) for node in self.nodes]
+
         return [node.fname for node in self.nodes]
 
     def get_nodes(self):
@@ -176,41 +182,8 @@ class RoamGraph():
         """
         return [node.id for node in self.nodes]
 
-    def get_names(self):
+    def get_titles(self):
         """
         Returns list of node names (#+title file property)
         """
-        return [node.name for node in self.nodes]
-
-    def __adjacency_entry(self, i,j, directed = False):
-        """
-        Determines if two nodes are adjacent
-
-        When directed, node i has an arrow to node j
-        if the node.id is present in the body of node j.
-        i.e. node i -> node j if node i refers to node j
-        """
-        if self.nodes[i].id in self.nodes[j].body():
-            return 1
-
-        if not directed:
-            if self.nodes[j].id in self.nodes[i].body():
-                return 1
-
-        return np.inf
-
-    def __cleanup_node_data(self):
-        """
-        Cleans up list of nodes by removing those nodes with NoneType file object
-        and/or no :ID: property.
-        """
-        nones = []
-        for node in self.nodes:
-            if node.fob is None:
-                warnings.warn(f"{os.path.basename(node.fname)}: bad orgparse. Removed from graph.")
-                nones.append(node)
-            if node.id is None:
-                warnings.warn(f"{os.path.basename(node.fname)}: malformed or no :ID:. Removed from graph.")
-                nones.append(node)
-
-        self.nodes = [i for i in self.nodes if i not in nones]
+        return [node.title for node in self.nodes]
