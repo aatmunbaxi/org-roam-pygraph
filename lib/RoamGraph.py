@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 import os , glob , re
 import warnings
 
@@ -36,19 +35,23 @@ class RoamGraph():
                recurse = False,
                tags_exact = None ,
                include_exact = True ,
-               tags_rx = [],
+               tags_rx = None,
                include_rx = True,
+               orphans = True
                ):
         """
         Constructor for RoamGraph
 
         Params
-        dirname -- directory to search for .org files
-        recurse (opt) -- whether to recurse in directory of not
-        tags_exact (opt) -- list of str to match roam tags exactly
-        include_exact (opt) -- bool. Include exact matched tags in graph
-        tags_rx (opt) -- list of compiled python regexes to match in roam tags
-        include_rx (opt) -- bool. Include regex matched tags in graph
+        dirname -- directory to search for .org files (required)
+        recurse (opt) -- whether to recurse in directory of not (default False)
+        tags_exact (opt) -- list of str to match roam tags exactly (default None)
+        include_exact (opt) -- bool. Include exact matched tags in graph (default True)
+        tags_rx (opt) -- list of compiled python regexes to match in roam tags (default None)
+        include_rx (opt) -- bool. Include regex matched tags in graph (default True)
+        orphans (opt) -- bool. Keep orphans (nodes with no incident edges) in graph (default True)
+                        Note: You can do this after constructing the graph. It is no more efficient to
+                        initialize with orphans = False
         """
 
         super(RoamGraph, self).__init__()
@@ -76,6 +79,9 @@ class RoamGraph():
         if self.rx_tags:
             self.__filter_rx_tags()
 
+        if not loners:
+            self.remove_orphans()
+
     def __filter_ex_tags(self):
         """
         Filters exact tags from node list
@@ -95,6 +101,23 @@ class RoamGraph():
             bool_tags_list = [not i for i in bool_tags_list]
 
         self.nodes = [i for (i,v) in zip(self.nodes, bool_tags_list) if v]
+
+    def remove_orphans(self):
+        """
+        Removes loners (nodes with no incident edges) from graph
+        """
+       mat = self.adjacency_matrix(directed = False)
+       N = len(mat)
+       mat += np.diag(np.full(N, np.inf) )
+
+       to_remove = []
+       for i in range(N):
+           if np.all(mat[i] == np.inf, axis=0):
+               to_remove.append(i)
+
+
+       self.nodes = [self.nodes[i] for i in range(len(self.nodes)) if i not in to_remove]
+
 
     def adjacency_matrix(self, directed = False, transpose = False):
         """
@@ -156,12 +179,18 @@ class RoamGraph():
         return [node.id for node in self.nodes]
 
     def get_names(self):
+        """
+        Returns list of node names (#+title file property)
+        """
         return [node.name for node in self.nodes]
-
 
     def __adjacency_entry(self, i,j, directed = False):
         """
         Determines if two nodes are adjacent
+
+        When directed, node i has an arrow to node j
+        if the node.id is present in the body of node j.
+        i.e. node i -> node j if node i refers to node j
         """
         if self.nodes[i].id in self.nodes[j].body():
             return 1
@@ -173,13 +202,17 @@ class RoamGraph():
         return np.inf
 
     def __cleanup_node_data(self):
+        """
+        Cleans up list of nodes by removing those nodes with NoneType file object
+        and/or no :ID: property.
+        """
         nones = []
         for node in self.nodes:
             if node.fob is None:
-                warnings.warn(f"{os.path.basename(node.fname)} has bad orgparse. Removed from graph.")
+                warnings.warn(f"{os.path.basename(node.fname)}: bad orgparse. Removed from graph.")
                 nones.append(node)
             if node.id is None:
-                warnings.warn(f"{os.path.basename(node.fname)} has malformed or no ID property. Removed from graph.")
+                warnings.warn(f"{os.path.basename(node.fname)}: malformed or no :ID:. Removed from graph.")
                 nones.append(node)
 
         self.nodes = [i for i in self.nodes if i not in nones]
