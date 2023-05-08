@@ -71,15 +71,16 @@ f
 #+RESULTS:
 [[file:images/viz.svg]]
 
+(As you can probably see, I've spent more time making this library than building my zettelkasten.)
 ** Directed Graphs
-Of course, all the above has a directed version!
+Of course, all the above has a directed version.
 #+begin_src python :session python :exports code
 adj_matrix_directed = network.adjacency_matrix(directed = True)
 #+end_src
 
 #+RESULTS:
 
-#+begin_src python :session python :exports code
+#+begin_src python :session python :exports none
 adj_matrix_directed[np.isinf(adj_matrix_directed)] = 0
 G_directed = nx.from_numpy_array(adj_matrix_directed, create_using=nx.DiGraph)
 plt.cla()
