@@ -93,7 +93,7 @@ m
 
 ** Directed Graphs
 Of course, all the above has a directed version.
-Like the undirected case, a directed graph is uniquely determined by an =n x n= matrix with entries =1,0,= or =infinity= (all graphs here are unweighted), but it need not be symmetric.
+Like the undirected case, a directed graph is uniquely determined by an =n x n= matrix with entries =1=, =0=, or =infinity= (all graphs here are unweighted), but it need not be symmetric.
 A path =node i -> node j= exists if and only if the =i,j-th= entry of the matrix is =1=.
 
 We can again visualize with =networkx=.
