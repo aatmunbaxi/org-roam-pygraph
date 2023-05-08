@@ -1,6 +1,6 @@
 #+title: =org-roam-pygraph= demo
 #+author: aatmunbaxi
-
+#+options: :tangle yes
 Here we give a short demo of the capabilities of =org-roam-pygraph=.
 
 Import the libraries we'll need to demo stuff.
@@ -20,29 +20,27 @@ import networkx as nx
 
 * Basic functionality
 
-We first need a directory to search for =org-roam= files.
-(Note we need the trailing "/" and an full path, =~= is not allowed.)
+We locate our =org-roam= database and create the network from its path.
+In my case, it is located at =~/.emacs.d/.local/cache/org-roam.db=.
+Yours may vary, depending on if you've specified a custom location.
 #+begin_src python :session python :exports code
-ROAM_DIR = "/your/directory/here/"
+ROAM_DB = "/path/to/org-roam-db.db"
+network = RoamGraph(ROAM_DB)
 #+end_src
 
 #+RESULTS:
 
-#+begin_src python :session python :exports none
-ROAM_DIR = "/home/aatmun/Documents/org/roam/"
-#+end_src
-
-#+RESULTS:
-
-Then we'll simply create our graph object.
-#+begin_src python :session python :exports code
-network = RoamGraph(ROAM_DIR)
+#+begin_src python :session python :exports results
+ROAM_DB = "~/.emacs.d/.local/cache/org-roam.db"
+network = RoamGraph(ROAM_DB)
 #+end_src
 
 #+RESULTS:
 
 ** Undirected graphs
 An undirected graph is determined uniquely by a symmetric adjacency matrix.
+We can compute this matrix to determine what our graph looks like.
+The =RoamGraph= object contains only enough information to generate the graph at the time of construction.
 #+begin_src python :session python :exports code
 adj_matrix = network.adjacency_matrix(directed = False)
 #+end_src
@@ -50,9 +48,8 @@ adj_matrix = network.adjacency_matrix(directed = False)
 #+RESULTS:
 
 Let us visualize the graph we've created.
-By default, the adjacency matrix has value =np.inf= for non-incidental nodes; we need to change those to =0= to visualize with =networkx=
-
-Load it as a =networkx= graph and check the viz.
+By default, the adjacency matrix has value =np.inf= for non-incidental nodes.
+We want to visualize with =networkx=, which requires values =0= for non-incidental nodes.
 #+begin_src python :session python :exports code
 adj_matrix[np.isinf(adj_matrix)] = 0
 G = nx.from_numpy_array(adj_matrix)
@@ -73,17 +70,15 @@ f
 
 (As you can probably see, I've spent more time making this library than building my zettelkasten.)
 
-We observe some orphan nodes in our graph, let us remove them.
+We observe some orphan nodes in our graph, you may find yourself wanting to remove them, so let us do that.
 #+begin_src python :session python :exports code
-network.remove_orphans()
+orphanless = network.remove_orphans()
 #+end_src
 
 #+RESULTS:
-: None
 
-Try the viz again.
 #+begin_src python :session python :exports results :results file :var m="images/viz-undir-orphanless.svg"
-adj_matrix = network.adjacency_matrix()
+adj_matrix = orphanless.adjacency_matrix()
 adj_matrix[np.isinf(adj_matrix)] = 0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
@@ -96,9 +91,12 @@ m
 #+RESULTS:
 [[file:images/viz-undir-orphanless.svg]]
 
-Much better.
 ** Directed Graphs
 Of course, all the above has a directed version.
+Like the undirected case, a directed graph is uniquely determined by an =n x n= matrix with entries =1= (all graphs here are unweighted), but it need not be symmetric.
+A path =node i -> node j= exists if and only if the =i,j-th= entry of the matrix is =1=.
+
+We can again visualize with =networkx=.
 #+begin_src python :session python :exports code
 adj_matrix_directed = network.adjacency_matrix(directed = True)
 #+end_src
@@ -110,7 +108,7 @@ adj_matrix_directed[np.isinf(adj_matrix_directed)] = 0
 G_directed = nx.from_numpy_array(adj_matrix_directed, create_using=nx.DiGraph)
 plt.cla()
 plt.clf()
-nx.draw(G_directed,with_labels=False,node_size=100)
+nx.draw(G_directed,with_labels=False,node_size=50)
 #+end_src
 
 #+RESULTS:
@@ -128,13 +126,13 @@ At present, you may filter by tags to match exactly and/or tags that match a com
 For example, if I want the graph of nodes that only contain the filetag =algebraic-geometry=, here is what that would look like.
 #+begin_src python :session python :exports code
 tags = ['algebraic-geometry']
-network = RoamGraph(ROAM_DIR, tags_exact = tags, include_exact = True)
+filtered_network = network.filter_tags(tags, exclude = False)
 #+end_src
 
 #+RESULTS:
 
 #+begin_src python :session python :exports results :results file :var h="images/viz_alg-geo-exact.svg"
-adj_matrix = network.adjacency_matrix(directed = False)
+adj_matrix = filtered_network.adjacency_matrix(directed = False)
 
 adj_matrix[np.isinf(adj_matrix)] =0
 G = nx.from_numpy_array(adj_matrix)
@@ -148,16 +146,16 @@ h
 #+RESULTS:
 [[file:images/viz_alg-geo-exact.svg]]
 
-Or I can filter by regex to exclude all things matching =alg*= (say, to match "algebraic-geometry" and "algebraic-topology" simultaneously).
+Or I can filter by regex to exclude all things matching =alg*= (say, to match =algebraic-geometry= and =algebraic-topology= simultaneously).
 #+begin_src python :session python :exports code
 rx_tags = [re.compile("alg*")]
-network = RoamGraph(ROAM_DIR, tags_rx = rx_tags, include_rx = False)
+rx_filtered_network = network.filter_tags(rx_tags, exclude = True, regex = True)
 #+end_src
 
 #+RESULTS:
 
 #+begin_src python :session python :exports results :results file :var k="images/viz_alg-rx.svg"
-adj_matrix = network.adjacency_matrix()
+adj_matrix = rx_filtered_network.adjacency_matrix()
 
 adj_matrix[np.isinf(adj_matrix)] =0
 G = nx.from_numpy_array(adj_matrix)
@@ -172,8 +170,8 @@ k
 [[file:images/viz_alg-rx.svg]]
 * Larger Networks
 Just for fun we will visualize jethrokuan's [[https://github.com/jethrokuan/braindump][braindump]] using this library and =networkx=.
-#+begin_src python :session python :exports results :results file :var l="images/jethro-braindump.svg"
-dir = "/home/aatmun/working/jethrozettel/"
+#+begin_src python :session python :exports results :results file :var l="images/jethro-braindump.svg" :tangle no
+dir = ""
 
 braindump  = RoamGraph(dir)
 braindump = braindump.adjacency_matrix(directed=True)
