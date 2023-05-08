@@ -30,8 +30,7 @@ class RoamGraph():
     nodes : list RoamNode
         list of RoamNodes
     """
-    def __init__(self, db,
-               tags = None):
+    def __init__(self, db):
         """
         Constructor for RoamGraph
 
@@ -56,9 +55,36 @@ class RoamGraph():
         self.nodes = [ Node(a,b,c,d,e) for (a,b,c,d,e) in zip(fname_list, titles_list, id_list, tags_list, links_to_list) ]
 
     def get_nodes(self):
+        """
+        Returns list of nodes
+        """
         return self.nodes
 
+    def filter_tags(self, tags = None, exclude = True, regex = False):
+        if not regex:
+            self.__filter_tags(tags,exclude)
+
+        if regex:
+            self.__filter_rx_tags(tags,exclude)
+
+    def __filter_tags(self,tags,exclude):
+        scope = range(len(self.nodes))
+        tfilter = [ node.has_tag(tags) for node in self.nodes ]
+        if exclude:
+            tfilter = [not val for val in tfilter]
+        self.nodes = [ node for (node,val) in zip(self.nodes, tfilter) if val ]
+
+    def __filter_rx_tags(self, tags, exclude):
+        scope = range(len(self.nodes))
+        tfilter  = [node.has_regex_tag(tags) for node in self.nodes]
+        if exclude:
+            tfilter = [not val for val in tfilter]
+        self.nodes = [ node for (node,val) in zip(self.nodes, tfilter) if val ]
+
     def __init_ids(self,dbpath):
+        """
+        Initializes list of IDs for each node
+        """
         id_query = 'SELECT id FROM nodes ORDER BY id ASC;'
         try:
             with sql.connect(dbpath, uri=True) as con:
@@ -70,6 +96,9 @@ class RoamGraph():
             print("Connection failed: ",e)
 
     def __init_fnames(self,dbpath):
+        """
+        Initializes list of filenames for each node
+        """
         fname_query = 'SELECT file FROM nodes ORDER BY id ASC;'
         try:
             with sql.connect(dbpath, uri=True) as con:
@@ -81,6 +110,9 @@ class RoamGraph():
             print("Connection failed: ",e)
 
     def __init_titles(self,dbpath):
+        """
+        Initializes list of titles for each node
+        """
         title_query = 'SELECT title FROM nodes ORDER BY id ASC;'
         try:
             with sql.connect(dbpath, uri=True) as con:
@@ -92,6 +124,9 @@ class RoamGraph():
             print("Connection failed: ",e)
 
     def __init_tags(self,dbpath):
+        """
+        Initializes list of tags for each node
+        """
         tags_query = 'SELECT GROUP_CONCAT(tag) FROM tags GROUP BY node_id ORDER BY node_id ASC;'
         try:
             with sql.connect(dbpath, uri=True) as con:
@@ -104,6 +139,9 @@ class RoamGraph():
             print("Connection failed: ",e)
 
     def __init_links_to(self,dbpath):
+        """
+        Initializes list of links
+        """
         links_to_query = 'SELECT n.id, GROUP_CONCAT(l.dest) FROM nodes n LEFT JOIN links l ON n.id = l.source GROUP BY n.id ORDER BY n.id ;'
         try:
             with sql.connect(dbpath, uri=True) as con:
@@ -116,6 +154,21 @@ class RoamGraph():
 
         except sql.Error as e:
             print("Connection failed: ",e)
+
+    def remove_orphans(self):
+        """
+        Removes orphans from graph
+        """
+        mat = self.adjacency_matrix(directed=False)
+        N = len(mat)
+
+        mat += np.diag(np.full(N,np.inf))
+        to_remove = []
+        for i in range(N):
+            if self.nodes[i].is_orphan([self.nodes[j] for j in range(N) if j != i]):
+                to_remove.append(i)
+
+        self.nodes = [self.nodes[i] for i in range(N) if i not in to_remove]
 
     def adjacency_matrix(self, directed = False, transpose = False):
         """
@@ -131,7 +184,7 @@ class RoamGraph():
         graph = np.zeros((N,N))
 
         if directed:
-            for i in range(1,N):
+            for i in range(N):
                 for j in range(N):
                     if i != j:
                         graph[i,j] = 1 if self.nodes[i].links(self.nodes[j]) else np.inf
@@ -141,10 +194,13 @@ class RoamGraph():
             return graph
 
         for i in range(N):
-            for j in range(i+1 , N):
+            for j in range(i+1,N):
                 # print(type(self.nodes[i]) , type(self.nodes[j]))
                 graph[i,j] = 1 if self.nodes[i].links(self.nodes[j]) else np.inf
-                graph[j,i] = graph[i,j]
+                # if graph[i,j] == 1:
+                #     print(f"{self.nodes[i]} links to {self.nodes[j]}" )
+
+        graph += np.transpose(graph)
 
         return graph
 
@@ -187,3 +243,7 @@ class RoamGraph():
         Returns list of node names (#+title file property)
         """
         return [node.title for node in self.nodes]
+
+    def links(self):
+        links = [a.get_links() for a in self.nodes]
+        return [(a,b) for (a,b) in zip(self.get_titles() ,links )]

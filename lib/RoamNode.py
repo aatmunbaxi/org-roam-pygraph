@@ -29,6 +29,27 @@ class RoamNode():
     def get_id(self):
         return self.id
 
+    def get_links(self):
+        return self.links_to
+
+    def is_orphan(self , others):
+        """
+        Checks if node is an orphan with respect to others
+
+        Params:
+        other -- iterable of nodes to check against
+
+        Returns True if node is orphan
+        """
+        is_pointed_to = True if any(self.id in a.get_links() for a in others) else False
+        points_to = self.links_to != {}
+        return not points_to and not is_pointed_to
+
+    def has_tag(self, tags_checked):
+        return any(tag in tags_checked for tag in self.tags)
+
+    def has_regex_tag(self, rxs):
+        return any(rx.match(tag) for tag in self.tags for rx in rxs)
 
     def __str__(self):
         return f"({self.title}, {self.id})"
