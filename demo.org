@@ -43,7 +43,7 @@ network = RoamGraph(ROAM_DIR)
 
 ** Undirected graphs
 An undirected graph is determined uniquely by a symmetric adjacency matrix.
-#+begin_src python :session python :exports none
+#+begin_src python :session python :exports code
 adj_matrix = network.adjacency_matrix(directed = False)
 #+end_src
 
@@ -54,7 +54,7 @@ By default, the adjacency matrix has value =np.inf= for non-incidental nodes; we
 
 Load it as a =networkx= graph and check the viz.
 #+begin_src python :session python :exports code
-adj_matrix[np.isinf(adj_matrix)] =0
+adj_matrix[np.isinf(adj_matrix)] = 0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
