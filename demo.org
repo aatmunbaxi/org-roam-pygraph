@@ -1,7 +1,7 @@
 #+title: =org-roam-pygraph= demo
 #+author: aatmunbaxi
 
-Here we give a short demo on the capabilities of =org-roam-pygraph=.
+Here we give a short demo of the capabilities of =org-roam-pygraph=.
 
 Import the libraries we'll need to demo stuff.
 #+begin_src python :session python :exports code
@@ -9,15 +9,6 @@ import re
 import numpy as np
 
 from lib.RoamGraph import RoamGraph
-
-# VR persistence for undirected graphs
-from gtda.homology import VietorisRipsPersistence
-
-# FP persistence for directed graphs
-from gtda.homology import FlagserPersistence
-
-# Plotting of persistence diagrams
-from gtda.plotting import plot_diagram
 
 # For visualizing the graph
 import matplotlib.pyplot as plt
@@ -44,59 +35,68 @@ ROAM_DIR = "/home/aatmun/Documents/org/roam/"
 #+RESULTS:
 
 Then we'll simply create our graph object.
-#+begin_src python :session python :exports none
+#+begin_src python :session python :exports code
 network = RoamGraph(ROAM_DIR)
 #+end_src
 
 #+RESULTS:
 
 ** Undirected graphs
-
-We can compute the adjacency matrix and visualize it with =networkx=.
+An undirected graph is determined uniquely by a symmetric adjacency matrix.
 #+begin_src python :session python :exports none
 adj_matrix = network.adjacency_matrix(directed = False)
 #+end_src
 
 #+RESULTS:
 
-Or we can compute a distance matrix.
-#+begin_src python :session python :exports both
-dist_matrix = network.distance_matrix(directed = False)
-#+end_src
-
-#+RESULTS:
-
-By default, the adjacency matrix has value =np.inf= for non-incidental nodes, so we need to change those to =0= to visualize with =networkx=
+Let us visualize the graph we've created.
+By default, the adjacency matrix has value =np.inf= for non-incidental nodes; we need to change those to =0= to visualize with =networkx=
 
 Load it as a =networkx= graph and check the viz.
-#+begin_src python :session python :exports both :results file :var f="images/viz.png"
+#+begin_src python :session python :exports code
 adj_matrix[np.isinf(adj_matrix)] =0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
-nx.draw(G,with_labels=True)
-plt.savefig(f)
-f
+nx.draw(G,with_labels=False, node_size=100)
 #+end_src
 
 #+RESULTS:
-[[file:images/viz.png]]
+: None
+
+#+begin_src python :session python :exports both :results file :var f="images/viz.svg"
+plt.savefig(f)
+f
+#+end_src
+#+RESULTS:
+[[file:images/viz.svg]]
 
 ** Directed Graphs
 Of course, all the above has a directed version!
-#+begin_src python :session python :exports both :results file :var g="images/viz_directed.png"
+#+begin_src python :session python :exports code
 adj_matrix_directed = network.adjacency_matrix(directed = True)
+#+end_src
+
+#+RESULTS:
+
+#+begin_src python :session python :exports code
 adj_matrix_directed[np.isinf(adj_matrix_directed)] = 0
 G_directed = nx.from_numpy_array(adj_matrix_directed, create_using=nx.DiGraph)
 plt.cla()
 plt.clf()
-nx.draw(G_directed,with_labels=True)
+nx.draw(G_directed,with_labels=False,node_size=100)
+#+end_src
+
+#+RESULTS:
+: None
+
+#+begin_src python :session python :exports both :results file :var g="images/viz_directed.svg"
 plt.savefig(g)
 g
 #+end_src
 
 #+RESULTS:
-[[file:images/viz_directed.png]]
+[[file:images/viz_directed.svg]]
 ** Filtering
 At present, you may filter by tags to match exactly and/or tags that match a compiled python regex.
 For example, if I want to the graph to those nodes that only contain the filetag =algebraic-geometry=, here is what that would look like.
@@ -107,42 +107,64 @@ network = RoamGraph(ROAM_DIR, tags_exact = tags, include_exact = True)
 
 #+RESULTS:
 
-#+begin_src python :session python :exports results :results file :var h="images/viz_alg-geo-exact.png"
-
+#+begin_src python :session python :exports results :results file :var h="images/viz_alg-geo-exact.svg"
 adj_matrix = network.adjacency_matrix(directed = False)
 
 adj_matrix[np.isinf(adj_matrix)] =0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
-nx.draw(G,with_labels=True)
+nx.draw(G,with_labels=False,node_size = 100)
 plt.savefig(h)
 h
-
 #+end_src
 
 #+RESULTS:
-[[file:images/viz_alg-geo-exact.png]]
+[[file:images/viz_alg-geo-exact.svg]]
 
-Or I can filter by regex to exclude all things related to =cat=.
+Or I can filter by regex to exclude all things matching =alg*= (say, to match "algebraic-geometry" and "algebraic-topology" simultaneously).
 #+begin_src python :session python :exports code
-rx_tags = [re.compile("cat*")]
+rx_tags = [re.compile("alg*")]
 network = RoamGraph(ROAM_DIR, tags_rx = rx_tags, include_rx = False)
 #+end_src
 
 #+RESULTS:
 
-#+begin_src python :session python :exports results :results file :var k="images/viz_cat-rx.png"
+#+begin_src python :session python :exports results :results file :var k="images/viz_alg-rx.svg"
 adj_matrix = network.adjacency_matrix()
 
 adj_matrix[np.isinf(adj_matrix)] =0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
-nx.draw(G,with_labels=True)
+nx.draw(G,with_labels=False, node_size = 100)
 plt.savefig(k)
 k
 #+end_src
 
 #+RESULTS:
-[[file:images/viz_cat-rx.png]]
+[[file:images/viz_alg-rx.svg]]
+* Larger Networks
+Just for fun we will visualize jethrokuan's [[https://github.com/jethrokuan/braindump][braindump]] using this library and =networkx=.
+#+begin_src python :session python :exports results :results file :var l="images/jethro-braindump.svg"
+dir = "/home/aatmun/working/jethrozettel/"
+
+braindump  = RoamGraph(dir)
+braindump = braindump.adjacency_matrix(directed=True)
+braindump[np.isinf(braindump)] = 0
+G = nx.from_numpy_array(braindump)
+plt.cla()
+plt.clf()
+nx.draw(G , with_labels=False, node_size = 3)
+plt.savefig(l)
+l
+#+end_src
+
+#+RESULTS:
+[[file:images/jethro-braindump.svg]]
+
+* What to use this for
+Anything!
+Lots of graph analysis techniques work when just an adjacency matrix is known, especially in python and =networkx=.
+Originally I wrote this library to run topological data analysis on the org-roam graph, since the goal of TDA is to reveal "hidden structure" in graphs, just like the zettelkasten promises to reveal "hidden links" between a large knowledge base.
+A drop-in solution for TDA is =giotto-tda=, for example, which allows you to run persistent homology analysis on directed and undirected graphs.

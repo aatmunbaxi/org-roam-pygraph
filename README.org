@@ -3,7 +3,7 @@
 #+created: Sat May 06, 2023
 
 * What is this?
-Inspired somewhat by [[https://github.com/org-roam/org-roam-ui][org-roam-ui]], this repo provides a python library to convert org-roam collections into graphs, represented by their adjacency matrices.
+Inspired by [[https://github.com/org-roam/org-roam-ui][org-roam-ui]], this repo provides a python library to convert org-roam collections into graphs workable in numerical python libraries like =numpy=.
 
 See a demo [[file:demo.org][here]].
 * Features
@@ -17,7 +17,6 @@ See a demo [[file:demo.org][here]].
 - =scipy=
 
 * Wishlist
-- More robust filtering options by other org properties, or maybe even custom org properties
-  - Regex might be a good next step
-- Give ability to interface with emacs
+- More robust filtering options by other org properties, or even custom org properties
+- Ability to interface with emacs
 - Housekeeping, like exception handling and edge case handling
