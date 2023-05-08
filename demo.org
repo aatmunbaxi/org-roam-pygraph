@@ -72,6 +72,31 @@ f
 [[file:images/viz.svg]]
 
 (As you can probably see, I've spent more time making this library than building my zettelkasten.)
+
+We observe some orphan nodes in our graph, let us remove them.
+#+begin_src python :session python :exports code
+network.remove_orphans()
+#+end_src
+
+#+RESULTS:
+: None
+
+Try the viz again.
+#+begin_src python :session python :exports results :results file :var m="images/viz-undir-orphanless.svg"
+adj_matrix = network.adjacency_matrix()
+adj_matrix[np.isinf(adj_matrix)] = 0
+G = nx.from_numpy_array(adj_matrix)
+plt.cla()
+plt.clf()
+nx.draw(G,with_labels=False, node_size=100)
+plt.savefig(m)
+m
+#+end_src
+
+#+RESULTS:
+[[file:images/viz-undir-orphanless.svg]]
+
+Much better.
 ** Directed Graphs
 Of course, all the above has a directed version.
 #+begin_src python :session python :exports code
