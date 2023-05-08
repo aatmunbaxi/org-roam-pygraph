@@ -64,7 +64,7 @@ nx.draw(G,with_labels=False, node_size=100)
 #+RESULTS:
 : None
 
-#+begin_src python :session python :exports both :results file :var f="images/viz.svg"
+#+begin_src python :session python :exports results :results file :var f="images/viz.svg"
 plt.savefig(f)
 f
 #+end_src
@@ -90,7 +90,7 @@ nx.draw(G_directed,with_labels=False,node_size=100)
 #+RESULTS:
 : None
 
-#+begin_src python :session python :exports both :results file :var g="images/viz_directed.svg"
+#+begin_src python :session python :exports results :results file :var g="images/viz_directed.svg"
 plt.savefig(g)
 g
 #+end_src
