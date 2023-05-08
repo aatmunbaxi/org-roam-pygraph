@@ -100,7 +100,7 @@ g
 [[file:images/viz_directed.svg]]
 ** Filtering
 At present, you may filter by tags to match exactly and/or tags that match a compiled python regex.
-For example, if I want to the graph to those nodes that only contain the filetag =algebraic-geometry=, here is what that would look like.
+For example, if I want the graph of nodes that only contain the filetag =algebraic-geometry=, here is what that would look like.
 #+begin_src python :session python :exports code
 tags = ['algebraic-geometry']
 network = RoamGraph(ROAM_DIR, tags_exact = tags, include_exact = True)
