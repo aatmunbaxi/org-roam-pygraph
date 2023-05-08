@@ -21,7 +21,7 @@ import networkx as nx
 * Basic functionality
 
 We first need a directory to search for =org-roam= files.
-(Note we need the trailing "/" and an absolute path)
+(Note we need the trailing "/" and an full path, =~= is not allowed.)
 #+begin_src python :session python :exports code
 ROAM_DIR = "/your/directory/here/"
 #+end_src
@@ -165,6 +165,6 @@ l
 
 * What to use this for
 Anything!
-Lots of graph analysis techniques work when just an adjacency matrix is known, especially in python and =networkx=.
+Many graph analysis techniques work with just an adjacency matrix.
 Originally I wrote this library to run topological data analysis on the org-roam graph, since the goal of TDA is to reveal "hidden structure" in graphs, just like the zettelkasten promises to reveal "hidden links" between a large knowledge base.
 A drop-in solution for TDA is =giotto-tda=, for example, which allows you to run persistent homology analysis on directed and undirected graphs.
