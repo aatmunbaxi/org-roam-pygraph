@@ -79,7 +79,7 @@ class RoamGraph():
         if self.rx_tags:
             self.__filter_rx_tags()
 
-        if not loners:
+        if not orphans:
             self.remove_orphans()
 
     def __filter_ex_tags(self):
@@ -106,17 +106,15 @@ class RoamGraph():
         """
         Removes loners (nodes with no incident edges) from graph
         """
-       mat = self.adjacency_matrix(directed = False)
-       N = len(mat)
-       mat += np.diag(np.full(N, np.inf) )
+        mat = self.adjacency_matrix(directed = False)
+        N = len(mat)
+        mat += np.diag(np.full(N, np.inf) )
+        to_remove = []
+        for i in range(N):
+            if np.all(mat[i] == np.inf, axis=0):
+                to_remove.append(i)
 
-       to_remove = []
-       for i in range(N):
-           if np.all(mat[i] == np.inf, axis=0):
-               to_remove.append(i)
-
-
-       self.nodes = [self.nodes[i] for i in range(len(self.nodes)) if i not in to_remove]
+        self.nodes = [self.nodes[i] for i in range(len(self.nodes)) if i not in to_remove]
 
 
     def adjacency_matrix(self, directed = False, transpose = False):
