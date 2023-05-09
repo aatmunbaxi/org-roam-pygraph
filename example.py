@@ -11,10 +11,13 @@ tags = [ ]
 
 # Initialize RoamGraph object
 # Choose to include or exclude tags
-network = RoamGraph(ROAM_DIR, tags , exclude = False)
+network = RoamGraph(ROAM_DIR)
+
+# Filter tags
+filtered_network = network.filter_tags(tags, exclude = False)
 
 # Compute distance matrix of undirected network
 graph = network.distance_matrix(directed = False)
 
-# or directed
-# graph = network.distance_matrix(directed = False)
+# Directed filtered distance matrix
+filtered_graph = filtered_network.distance_matrix(directed = True)
