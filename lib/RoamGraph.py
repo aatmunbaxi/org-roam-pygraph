@@ -53,12 +53,14 @@ class RoamGraph():
         Extract subgraph based on filtering of tags
 
         Params
-        tags -- list of tags to filter
-        exclude -- exclude tags if True (default True)
-        regex -- regular expression. Function expects a list of
-                 compiled regexes if True
+        tags -- list (str) (default None)
+             list of tags to filter
+        exclude -- bool (default True)
+                exclude tags if True (default True)
+        regex -- bool (default False)
+                interpret tags param as list of regexes.
 
-        Returns a filtered subgraph as copy
+        Returns filtered subgraph as copy
         """
         if not tags:
             raise ValueError("taglist must be nonempty")
@@ -75,6 +77,11 @@ class RoamGraph():
     def __filter_tags(self,tags,exclude):
         """
         Filters tags by exact match
+
+        tags -- list (str)
+             Tags to match
+        exclude -- bool
+             To exclude or no
         """
         scope = range(len(self.nodes))
         tfilter = [ node.has_tag(tags) for node in self.nodes ]
@@ -85,7 +92,17 @@ class RoamGraph():
     def __filter_rx_tags(self, tags, exclude):
         """
         Filters tags by regex
+
+        Params
+        tags -- list regexp
+             Regexes to compiler by
+        exclue -- bool
+             To exclude tags or not
+
+        Returns filtered subgraph as copy
         """
+        tags = set(map(re.compile, tags))
+
         scope = range(len(self.nodes))
         tfilter  = [node.has_regex_tag(tags) for node in self.nodes]
         if exclude:
@@ -97,7 +114,8 @@ class RoamGraph():
         Initializes list of IDs for each node
 
         Params
-        dbpath -- database path
+        dbpath -- str
+              database path
 
         Returns list of roam-node ids
         """
@@ -116,7 +134,8 @@ class RoamGraph():
         Initializes list of filenames for each node
 
         Params
-        dbpath -- database path
+        dbpath -- str
+               database path
 
 
         Returns list of roam-node filepaths
@@ -136,7 +155,8 @@ class RoamGraph():
         Initializes list of titles for each node
 
         Params
-        dbpath -- database path
+        dbpath -- str
+               database path
 
 
         Returns list of roam-node titles
@@ -156,8 +176,8 @@ class RoamGraph():
         Initializes list of tags for each node
 
         Params
-        dbpath -- database path
-
+        dbpath -- str
+                database path
 
         Returns list of roam-node taglists (as a set)
         """
@@ -177,7 +197,8 @@ class RoamGraph():
         Initializes list of links
 
         Params
-        dbpath -- database path
+        dbpath -- str
+               database path
 
 
         Returns list of roam-node links
@@ -201,26 +222,23 @@ class RoamGraph():
 
         Returns orphanless RoamGraph as copy
         """
-        mat = self.adjacency_matrix(directed = False)
-        N = len(mat)
-        mat += np.diag(np.full(N,np.inf))
-        to_remove = []
-        for i in range(N):
-            if np.all(mat[i] == np.inf, axis=0):
-                to_remove.append(i)
+        orphanless = copy.copy(self)
+        not_orphan = lambda node: not self.__is_orphan(node)
 
-        orphanless = copy.deepcopy(self)
-        orphanless.nodes = [self.nodes[i] for i in range(len(self.nodes)) if i not in to_remove]
+        orphanless.nodes = list(filter(not_orphan, self.nodes))
+
         return orphanless
 
     def adjacency_matrix(self, directed = False, reverse = False):
         """
         Builds adjacency matrix of graph nodes
 
-        directed -- whether to consider the zettel graph as directed (default False)
-        reverse -- reverse direction of graph paths (default False)
-                   By default, node1 points to node2 if the id of node2 is linked
-                   in the body of node1
+        directed -- bool
+                whether to consider the zettel graph as directed (default False)
+        reverse -- bool
+                reverse direction of graph paths (default False)
+                By default, node1 points to node2 if the id of node2 is linked
+                in the body of node1
 
         Returns graph's adjacency matrix
         """
@@ -254,8 +272,10 @@ class RoamGraph():
         """
         Computes distance matrix of graph
 
-        directed -- Consider graph as directed (default False)
-        transpose -- reverse direction of graph paths (default False)
+        directed -- bool (default False)
+                 Consider graph as directed (default False)
+        transpose -- bool (default False)
+                 reverse direction of graph paths (default False)
 
         Returns graphs distance matrix
         """
@@ -267,7 +287,10 @@ class RoamGraph():
         """
         Get filenames of graph
 
-        base -- basenames of files (default True)
+        base -- bool (True)
+              basenames of files
+
+        Returns list of filenames
         """
         if base:
             return [os.path.basename(node.fname) for node in self.nodes]
@@ -298,3 +321,19 @@ class RoamGraph():
         """
         links = [a.get_links() for a in self.nodes]
         return [(a,b) for (a,b) in zip(self.get_titles() ,links )]
+
+
+    def __is_orphan(self, node):
+        """
+        Checks if node is an orphan with respect to others
+
+        Params:
+        node -- node to check orphanhood
+
+        Returns True if node is orphan of self
+        """
+        pointed_to = True if any(node.id in a.links_to for a in self.nodes) else False
+        points_to = node.links_to != {}
+        if not points_to and not pointed_to:
+            print(f"{node} is an orphan of {self}")
+        return not points_to and not pointed_to

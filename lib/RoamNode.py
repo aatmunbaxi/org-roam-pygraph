@@ -6,11 +6,25 @@ import numpy as np
 
 class RoamNode():
     """Node for org-roam zettels
+
+    Attributes
+    fname -- filename of node locatoin
+    title -- title of node
+    id    -- org-roam id
+    tags  -- set of tags of node
+    links_to -- set of ids this node links in its body
     """
     def __init__(self, fname, title, id, tags, links_to):
+        """
+        Params
+        fname -- filename of node locatoin
+        title -- title of node
+        id    -- org-roam id
+        tags  -- set of tags of node
+        links_to -- set of ids this node links in its body
+        """
         super(RoamNode, self).__init__()
         self.fname = fname
-        # self.fob = orgload(fname)
         self.title = title
         self.id = id
         self.tags = tags
@@ -18,12 +32,30 @@ class RoamNode():
 
 
     def links_to(self, other_id):
+        """
+        Returns set of tags this node links to
+        """
         return other_id in links_to
 
     def tags(self):
+        """
+        Returns node tags
+        """
         return self.tags
 
-    def links(self,n, directed = False):
+    def links(self, n, directed = False):
+        """
+    Determined if node links to another node
+
+        Params
+        n -- RoamNode
+              other node
+        directed -- bool (default False)
+                 check link directionally, otherwise return true
+                    if other node likes to self
+
+        Returns if node links to other node
+        """
 
         if directed:
             return n.id in self.links_to
@@ -31,36 +63,40 @@ class RoamNode():
             return n.id in self.links_to or self.id in n.links_to
 
     def get_id(self):
+        """
+        Returns node id
+        """
         return self.id
 
     def get_links(self):
+        """
+        Returns links of a node
+        """
         return self.links_to
-
-    def is_orphan(self , others):
-        """
-        Checks if node is an orphan with respect to others
-
-        Params:
-        other -- iterable of nodes to check against
-
-        Returns True if node is orphan
-        """
-        is_pointed_to = True if any(self.id in a.get_links() for a in others) else False
-        # is_pointed_to = False
-
-        # for node in others:
-        #     if self.id in node.links_to:
-        #         is_pointed_to = True
-        #         break
-        points_to = self.links_to != {}
-
-        return not points_to and not is_pointed_to
 
 
     def has_tag(self, tags_checked):
+        """
+        Checks if node has tag
+
+        Params
+        tags_checked -- iterable (str)
+            Iterable of tags to match exactly
+
+        Returns True if node has any of the tags in tags_checked
+        """
         return any(tag in tags_checked for tag in self.tags)
 
     def has_regex_tag(self, rxs):
+        """
+        Checks if node has regex tag
+
+        Params
+        rxs -- iterable (compiled regexes)
+            Iterable of regexes to match
+
+        Returns True if node tag matches any of the regexes
+        """
         return any(rx.match(tag) for tag in self.tags for rx in rxs)
 
     def __str__(self):
@@ -68,40 +104,3 @@ class RoamNode():
 
     def __repr__(self):
         return  f"({self.title}, {self.id})"
-
-
-    # def has_exact_tags(self, ex_tags, regex = False):
-    #     """
-    #     Return true if the node contains any of the tags in `tags`
-
-    #     Params:
-    #     ex_tags -- list of tags to match exactly
-
-    #     Returns:
-    #     True if node contains any of the tags in tags
-    #     """
-    #     return any(tag in ex_tags for tag in self.tags)
-
-
-    # def has_rx_tags(self, rx_tags, regex = False):
-    #     """
-    #     Return true if the node contains any of the regex tags in `tags`
-
-    #     Params:
-    #     rx_tags -- list of compiled python regexes to match
-
-    #     Returns:
-    #     True if node contains any of the regexes in rx_tags
-    #     """
-    #     return any(rx_tag.match(tag) for tag in self.tags for rx_tag in rx_tags)
-
-
-    # def body(self, fmt = 'raw'):
-    #     """
-    #     Returns full (full-depth) body of node
-    #     """
-    #     body = ""
-    #     for subheading in self.fob.root:
-    #         body += subheading.get_body(format=fmt)
-
-    #     return body
