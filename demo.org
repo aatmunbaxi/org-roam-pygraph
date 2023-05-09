@@ -148,7 +148,7 @@ h
 
 Or I can filter by regex to exclude all things matching =alg*= (say, to match =algebraic-geometry= and =algebraic-topology= simultaneously).
 #+begin_src python :session python :exports code
-rx_tags = [re.compile("alg*")]
+rx_tags = ["alg*"]
 rx_filtered_network = network.filter_tags(rx_tags, exclude = True, regex = True)
 #+end_src
 
