@@ -32,13 +32,13 @@ class RoamGraph():
 
         self.db_path = os.path.expanduser(db)
 
-        id_list = self.__init_ids(self.db_path)
-        fname_list = self.__init_fnames(self.db_path)
-        titles_list = self.__init_titles(self.db_path)
-        tags_list = self.__init_tags(self.db_path)
-        links_to_list = self.__init_links_to(self.db_path)
+        fnames = self.__init_fnames(self.db_path)
+        titles = self.__init_titles(self.db_path)
+        ids = self.__init_ids(self.db_path)
+        tags = self.__init_tags(self.db_path)
+        links_to = self.__init_links_to(self.db_path)
 
-        self.nodes = [ Node(a,b,c,d,e) for (a,b,c,d,e) in zip(fname_list, titles_list, id_list, tags_list, links_to_list) ]
+        self.nodes = [ Node(a,b,c,d,e) for (a,b,c,d,e) in zip(fnames, titles, ids, tags, links_to) ]
 
 
 
@@ -86,8 +86,8 @@ class RoamGraph():
         scope = range(len(self.nodes))
         tfilter = [ node.has_tag(tags) for node in self.nodes ]
         if exclude:
-            tfilter = [not val for val in tfilter]
-        self.nodes = [ node for (node,val) in zip(self.nodes, tfilter) if val ]
+            tfilter = [not b for b in tfilter]
+        self.nodes = [ node for (node,b) in zip(self.nodes, tfilter) if b ]
 
     def __filter_rx_tags(self, tags, exclude):
         """
@@ -106,8 +106,8 @@ class RoamGraph():
         scope = range(len(self.nodes))
         tfilter  = [node.has_regex_tag(tags) for node in self.nodes]
         if exclude:
-            tfilter = [not val for val in tfilter]
-        self.nodes = [ node for (node,val) in zip(self.nodes, tfilter) if val ]
+            tfilter = [not b for b in tfilter]
+        self.nodes = [ node for (node,b) in zip(self.nodes, tfilter) if b ]
 
     def __init_ids(self,dbpath):
         """
@@ -261,7 +261,7 @@ class RoamGraph():
 
         for i in range(N):
             for j in range(i+1,N):
-                if self.nodes[i].links(self.nodes[j],directed= False):
+                if self.nodes[i].links(self.nodes[j]):
                     graph[i,j] = graph[j,i] = 1
                 else:
                     graph[i,j] = graph[j,i] = np.inf
@@ -274,7 +274,7 @@ class RoamGraph():
 
         directed -- bool (default False)
                  Consider graph as directed (default False)
-        transpose -- bool (default False)
+        reverse -- bool (default False)
                  reverse direction of graph paths (default False)
 
         Returns graphs distance matrix
@@ -332,8 +332,6 @@ class RoamGraph():
 
         Returns True if node is orphan of self
         """
-        pointed_to = True if any(node.id in a.links_to for a in self.nodes) else False
+        pointed_to = True if any(node.id in n.links_to for n in self.nodes) else False
         points_to = node.links_to != {}
-        if not points_to and not pointed_to:
-            print(f"{node} is an orphan of {self}")
         return not points_to and not pointed_to

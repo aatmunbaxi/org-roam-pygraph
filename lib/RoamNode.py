@@ -50,7 +50,7 @@ class RoamNode():
         Params
         n -- RoamNode
               other node
-        directed -- bool (default False)
+        directed -- bool.
                  check link directionally, otherwise return true
                     if other node likes to self
 
