@@ -9,17 +9,12 @@ See a demo [[file:demo.org][here]].
 * Features
 - Adjacency matrix of the org-roam network (directed or undirected)
 - Distance matrix of network (directed or undirected)
-- Filter network by tags, inclusive or exclusive
+- Filter network by tags--exact match or regex--inclusive or exclusive
 
 * Prerequisites
 - A healthy =org-roam2= database
 - Python 3.7+
 - =scipy=
-
-* Wish list
-- More robust filtering options by other org properties, or even custom org properties
-- Ability to interface with emacs
-- Housekeeping, like exception handling and edge case handling
 
 * Credits
 - =org-roam-ui=

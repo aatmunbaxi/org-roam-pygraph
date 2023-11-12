@@ -72,7 +72,12 @@ plt.savefig(f)
 f
 #+end_src
 
+#+RESULTS:
 [[file:images/viz.svg]]
+
+Just for comparison's sake, here is the graph I see in =org-roam-ui=:
+[[file:images/orui-viz.png]]
+The differences in how they are visualized is due to the internal workings of =networkx=.
 
 We observe some orphan nodes in our graph, you may find yourself wanting to remove them, so let us do that.
 #+begin_src python :session python :exports code
