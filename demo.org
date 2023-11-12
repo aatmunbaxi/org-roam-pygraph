@@ -2,13 +2,8 @@
 #+author: aatmunbaxi
 #+options: :tangle yes
 
-#+begin_src emacs-lisp :session python :exports none
-(pyvenv-activate "~/programming/org-roam-pygraph/.venv")
-#+end_src
-
-#+RESULTS:
-
 Here we give a short demo of the capabilities of =org-roam-pygraph=.
+Much of it is based around visualization since the actual capabilities of the library are a little abstract and intangible.
 
 Import the libraries we'll need to demo stuff.
 #+begin_src python :session python :exports both
@@ -37,7 +32,7 @@ network = RoamGraph(ROAM_DB)
 #+RESULTS:
 
 #+begin_src python :session python :exports results
-ROAM_DB = "/home/aatmun/.emacs.d/.local/cache/org-roam.db"
+ROAM_DB = "/home/aatmun/.config/emacs/.local/cache/org-roam.db"
 network = RoamGraph(ROAM_DB)
 #+end_src
 
@@ -101,54 +96,39 @@ m
 [[file:images/viz-undir-orphanless.svg]]
 
 We also have the ability to generate a =pandas= dataframe from the database with each row and column labelled by the title of the =org-roam= node.
-#+begin_src python :session python :exports both :results html :return df.iloc[0:4,0:4].to_html()
-df = network.adjacency_df(directed = False, reverse = False)
+#+begin_src python :session python :exports both
+df = network.adjacency_df(directed = False)
 #+end_src
 
 #+RESULTS:
-#+begin_export html
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>q-analog</th>
-      <th>group algebra</th>
-      <th>ribbon category</th>
-      <th>cech cohomology computes sheaf cohomology</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>q-analog</th>
-      <td>1.0</td>
-      <td>inf</td>
-      <td>inf</td>
-      <td>inf</td>
-    </tr>
-    <tr>
-      <th>group algebra</th>
-      <td>inf</td>
-      <td>1.0</td>
-      <td>inf</td>
-      <td>inf</td>
-    </tr>
-    <tr>
-      <th>ribbon category</th>
-      <td>inf</td>
-      <td>inf</td>
-      <td>1.0</td>
-      <td>inf</td>
-    </tr>
-    <tr>
-      <th>cech cohomology computes sheaf cohomology</th>
-      <td>inf</td>
-      <td>inf</td>
-      <td>inf</td>
-      <td>1.0</td>
-    </tr>
-  </tbody>
-</table>
-#+end_export
+
+#+begin_src python :session python :exports none
+df.values[np.isinf(df)] = 0
+#+end_src
+
+#+RESULTS:
+
+This functionality lets you do interesting things based on the human-readable titles of the nodes.
+That is, the titles of you =org-roam= node.
+
+For example, I study fusion categories, lets visualize the nodes within 2 degrees of separation of the =fusion category= node with =nx.ego_graph()=.
+    #+begin_src python :session python
+H = nx.from_pandas_adjacency(df)
+ego = nx.ego_graph(H, "fusion category", radius = 2)
+#+end_src
+
+#+RESULTS:
+
+#+begin_src python :session python :exports results :results file :var p="images/fusion_ego.svg"
+plt.cla()
+plt.clf()
+nx.draw(ego, with_labels = False, node_size = 25)
+plt.savefig(l)
+p
+#+end_src
+
+#+RESULTS:
+[[file:images/fusion_ego.svg]]
 
 ** Directed Graphs
 Of course, all the above has a directed version.
