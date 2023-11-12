@@ -100,8 +100,8 @@ m
 #+RESULTS:
 [[file:images/viz-undir-orphanless.svg]]
 
-We also have the ability to generate a =pandas= dataframe from the database.
-#+begin_src python :session python :results html :return df.iloc[0:4,0:4].to_html()
+We also have the ability to generate a =pandas= dataframe from the database with each row and column labelled by the title of the =org-roam= node.
+#+begin_src python :session python :exports both :results html :return df.iloc[0:4,0:4].to_html()
 df = network.adjacency_df(directed = False, reverse = False)
 #+end_src
 
