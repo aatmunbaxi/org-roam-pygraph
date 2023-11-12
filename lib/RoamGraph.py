@@ -251,6 +251,7 @@ class RoamGraph:
         N = len(self.nodes)
 
         graph = np.zeros((N, N))
+        np.fill_diagonal(graph, 1)
 
         if directed:
             for i in range(N):
