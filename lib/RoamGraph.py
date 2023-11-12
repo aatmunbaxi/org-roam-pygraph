@@ -250,16 +250,13 @@ class RoamGraph:
         """
         N = len(self.nodes)
 
-        graph = np.zeros((N, N))
-        np.fill_diagonal(graph, 1)
+        graph = np.full((N, N),np.inf)
 
         if directed:
             for i in range(N):
                 for j in [k for k in range(N) if k != i]:
                     if self.nodes[i].links(self.nodes[j], directed=True):
                         graph[i, j] = 1
-                    else:
-                        graph[i, j] = np.inf
 
             if reverse:
                 return np.transpose(graph)
@@ -270,8 +267,6 @@ class RoamGraph:
             for j in range(i + 1, N):
                 if self.nodes[i].links(self.nodes[j]):
                     graph[i, j] = graph[j, i] = 1
-                else:
-                    graph[i, j] = graph[j, i] = np.inf
 
         return graph
 
@@ -280,15 +275,12 @@ class RoamGraph:
         N = len(self.nodes)
 
         df = pd.DataFrame(np.inf, dtype=np.float32, columns=names, index=names)
-        np.fill_diagonal(df.values, 1)
 
         if directed:
             for i in range(N):
                 for j in [k for k in range(N) if k != i]:
                     if self.nodes[i].links(self.nodes[j], directed=True):
                         df.values[i, j] = 1
-                    # else:
-                    #     df.values[i, j] = np.inf
 
             if reverse:
                 return pd.DataFrame(df.values.T, columns=names, index=names)
@@ -299,8 +291,6 @@ class RoamGraph:
             for j in range(i + 1, N):
                 if self.nodes[i].links(self.nodes[j]):
                     df.values[i, j] = df.values[j, i] = 1
-                # else:
-                #     df.values[i, j] = df.values[j, i] = np.inf
 
         return df
 
