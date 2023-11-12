@@ -8,6 +8,7 @@ Inspired by [[https://github.com/org-roam/org-roam-ui][org-roam-ui]], this repo 
 See a demo [[file:demo.org][here]].
 * Features
 - Adjacency matrix of the org-roam network (directed or undirected)
+- Adjacency matrix of network as =pandas= dataframe
 - Distance matrix of network (directed or undirected)
 - Filter network by tags--exact match or regex--inclusive or exclusive
 
@@ -15,6 +16,7 @@ See a demo [[file:demo.org][here]].
 - A healthy =org-roam2= database
 - Python 3.7+
 - =scipy=
+- =pandas=
 
 * Credits
 - =org-roam-ui=
