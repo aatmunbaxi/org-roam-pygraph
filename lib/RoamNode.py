@@ -4,7 +4,8 @@ import re
 
 import numpy as np
 
-class RoamNode():
+
+class RoamNode:
     """Node for org-roam zettels
 
     Attributes
@@ -14,6 +15,7 @@ class RoamNode():
     tags  -- set of tags of node
     links_to -- set of ids this node links in its body
     """
+
     def __init__(self, fname, title, id, tags, links_to):
         """
         Params
@@ -30,7 +32,6 @@ class RoamNode():
         self.tags = tags
         self.links_to = links_to
 
-
     def links_to(self, other_id):
         """
         Returns set of tags this node links to
@@ -43,18 +44,18 @@ class RoamNode():
         """
         return self.tags
 
-    def links(self, n, directed = False):
+    def links(self, n, directed=False):
         """
-    Determined if node links to another node
+        Determined if node links to another node
 
-        Params
-        n -- RoamNode
-              other node
-        directed -- bool.
-                 check link directionally, otherwise return true
-                    if other node likes to self
+            Params
+            n -- RoamNode
+                  other node
+            directed -- bool.
+                     check link directionally, otherwise return true
+                        if other node likes to self
 
-        Returns if node links to other node
+            Returns if node links to other node
         """
 
         if directed:
@@ -74,6 +75,11 @@ class RoamNode():
         """
         return self.links_to
 
+    def get_title(self):
+        """
+        Returns title of node
+        """
+        return self.title
 
     def has_tag(self, tags_checked):
         """
@@ -103,4 +109,4 @@ class RoamNode():
         return f"({self.title}, {self.id})"
 
     def __repr__(self):
-        return  f"({self.title}, {self.id})"
+        return f"({self.title}, {self.id})"

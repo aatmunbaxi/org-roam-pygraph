@@ -100,6 +100,56 @@ m
 #+RESULTS:
 [[file:images/viz-undir-orphanless.svg]]
 
+We also have the ability to generate a =pandas= dataframe from the database.
+#+begin_src python :session python :results html :return df.iloc[0:4,0:4].to_html()
+df = network.adjacency_df(directed = False, reverse = False)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>q-analog</th>
+      <th>group algebra</th>
+      <th>ribbon category</th>
+      <th>cech cohomology computes sheaf cohomology</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>q-analog</th>
+      <td>1.0</td>
+      <td>inf</td>
+      <td>inf</td>
+      <td>inf</td>
+    </tr>
+    <tr>
+      <th>group algebra</th>
+      <td>inf</td>
+      <td>1.0</td>
+      <td>inf</td>
+      <td>inf</td>
+    </tr>
+    <tr>
+      <th>ribbon category</th>
+      <td>inf</td>
+      <td>inf</td>
+      <td>1.0</td>
+      <td>inf</td>
+    </tr>
+    <tr>
+      <th>cech cohomology computes sheaf cohomology</th>
+      <td>inf</td>
+      <td>inf</td>
+      <td>inf</td>
+      <td>1.0</td>
+    </tr>
+  </tbody>
+</table>
+#+end_export
+
 ** Directed Graphs
 Of course, all the above has a directed version.
 Like the undirected case, a directed graph is uniquely determined by an =n x n= matrix with entries =1=, =0=, or =infinity= (all graphs here are unweighted), but it need not be symmetric.
