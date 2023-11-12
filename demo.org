@@ -1,10 +1,17 @@
 #+title: =org-roam-pygraph= demo
 #+author: aatmunbaxi
 #+options: :tangle yes
+
+#+begin_src emacs-lisp :session python :exports none
+(pyvenv-activate "~/programming/org-roam-pygraph/.venv")
+#+end_src
+
+#+RESULTS:
+
 Here we give a short demo of the capabilities of =org-roam-pygraph=.
 
 Import the libraries we'll need to demo stuff.
-#+begin_src python :session python :exports code
+#+begin_src python :session python :exports both
 import re
 import numpy as np
 
@@ -16,7 +23,6 @@ import networkx as nx
 #+end_src
 
 #+RESULTS:
-
 
 * Basic functionality
 
@@ -31,7 +37,7 @@ network = RoamGraph(ROAM_DB)
 #+RESULTS:
 
 #+begin_src python :session python :exports results
-ROAM_DB = "~/.emacs.d/.local/cache/org-roam.db"
+ROAM_DB = "/home/aatmun/.emacs.d/.local/cache/org-roam.db"
 network = RoamGraph(ROAM_DB)
 #+end_src
 
@@ -55,7 +61,7 @@ adj_matrix[np.isinf(adj_matrix)] = 0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
-nx.draw(G,with_labels=False, node_size=100)
+nx.draw(G, with_labels = False, node_size=25)
 #+end_src
 
 #+RESULTS:
@@ -67,8 +73,6 @@ f
 #+end_src
 #+RESULTS:
 [[file:images/viz.svg]]
-
-(As you can probably see, I've spent more time making this library than building my zettelkasten.)
 
 We observe some orphan nodes in our graph, you may find yourself wanting to remove them, so let us do that.
 #+begin_src python :session python :exports code
@@ -83,7 +87,7 @@ adj_matrix[np.isinf(adj_matrix)] = 0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
-nx.draw(G,with_labels=False, node_size=100)
+nx.draw(G,with_labels=False, node_size=25)
 plt.savefig(m)
 m
 #+end_src
@@ -108,7 +112,7 @@ adj_matrix_directed[np.isinf(adj_matrix_directed)] = 0
 G_directed = nx.from_numpy_array(adj_matrix_directed, create_using=nx.DiGraph)
 plt.cla()
 plt.clf()
-nx.draw(G_directed,with_labels=False,node_size=50)
+nx.draw(G_directed,with_labels=False,node_size=25)
 #+end_src
 
 #+RESULTS:
@@ -125,20 +129,20 @@ g
 At present, you may filter by tags to match exactly and/or tags that match a compiled python regex.
 For example, if I want the graph of nodes that only contain the filetag =algebraic-geometry=, here is what that would look like.
 #+begin_src python :session python :exports code
-tags = ['algebraic-geometry']
-filtered_network = network.filter_tags(tags, exclude = False)
+tags = ['fleeting']
+filtered_network = network.filter_tags(tags, exclude = True)
 #+end_src
 
 #+RESULTS:
 
-#+begin_src python :session python :exports results :results file :var h="images/viz_alg-geo-exact.svg"
+#+begin_src python :session python :exports results :results file :var h="images/viz_exc_fleet.svg"
 adj_matrix = filtered_network.adjacency_matrix(directed = False)
 
-adj_matrix[np.isinf(adj_matrix)] =0
+adj_matrix[np.isinf(adj_matrix)] = 0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
-nx.draw(G,with_labels=False,node_size = 100)
+nx.draw(G,with_labels=False,node_size = 25)
 plt.savefig(h)
 h
 #+end_src
@@ -157,38 +161,21 @@ rx_filtered_network = network.filter_tags(rx_tags, exclude = True, regex = True)
 #+begin_src python :session python :exports results :results file :var k="images/viz_alg-rx.svg"
 adj_matrix = rx_filtered_network.adjacency_matrix()
 
-adj_matrix[np.isinf(adj_matrix)] =0
+adj_matrix[np.isinf(adj_matrix)] = 0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
-nx.draw(G,with_labels=False, node_size = 100)
+nx.draw(G,with_labels=False, node_size = 25)
 plt.savefig(k)
 k
 #+end_src
 
 #+RESULTS:
 [[file:images/viz_alg-rx.svg]]
-* Larger Networks
-Just for fun we will visualize jethrokuan's [[https://github.com/jethrokuan/braindump][braindump]] using this library and =networkx=.
-#+begin_src python :session python :exports results :results file :var l="images/jethro-braindump.svg" :tangle no
-dir = ""
-
-braindump  = RoamGraph(dir)
-braindump = braindump.adjacency_matrix(directed=True)
-braindump[np.isinf(braindump)] = 0
-G = nx.from_numpy_array(braindump)
-plt.cla()
-plt.clf()
-nx.draw(G , with_labels=False, node_size = 3)
-plt.savefig(l)
-l
-#+end_src
-
-#+RESULTS:
-[[file:images/jethro-braindump.svg]]
-
 * What to use this for
-Anything!
 Many graph analysis techniques work with just an adjacency matrix.
-Originally I wrote this library to run topological data analysis on the org-roam graph, since the goal of TDA is to reveal "hidden structure" in graphs, just like the zettelkasten promises to reveal "hidden links" between a large knowledge base.
-A drop-in solution for TDA is =giotto-tda=, for example, which allows you to run persistent homology analysis on directed and undirected graphs.
+After all, an adjacency/incidence matrix is all you need to complete describe a graph.
+
+Originally I wrote this library to run topological data analysis on the org-roam graph, since the goal of TDA is to reveal "hidden structure" in graphs.
+To me this sounded just like the zettelkasten promise to reveal "hidden links" between a large knowledge base.
+A drop-in solution for TDA is =giotto-tda=, which allows you to run persistent homology analysis on directed and undirected graphs.
