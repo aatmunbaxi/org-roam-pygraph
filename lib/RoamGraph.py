@@ -226,7 +226,7 @@ class RoamGraph:
         """
         Removes orphan nodes
 
-        Returns orphanless RoamGraph as copy
+        Returns orphanless RoamGraph (not done in-place)
         """
         orphanless = copy.copy(self)
         not_orphan = lambda node: not self.__is_orphan(node)
@@ -238,13 +238,15 @@ class RoamGraph:
     def adjacency_matrix(self, directed=False, reverse=False):
         """
         Builds adjacency matrix of graph nodes
+        Two nodes i and j and adjacent if the i,jth entry of the
+        adjacency matrix is 1, and np.inf if they are not adjacent.
 
         directed -- bool
                 whether to consider the zettel graph as directed (default False)
         reverse -- bool
                 reverse direction of graph paths (default False)
-                By default, node1 points to node2 if the id of node2 is linked
-                in the body of node1
+                By default, node1 points to node2 if the ID of node2 is linked
+                in the body text of node1
 
         Returns graph's adjacency matrix
         """
@@ -271,6 +273,21 @@ class RoamGraph:
         return graph
 
     def adjacency_df(self, directed=False, reverse=False):
+        """
+        Builds adjacency dataframe of graph nodes
+        Two nodes i and j and adjacent if the i,jth entry of the
+        adjacency matrix is 1, and np.inf if they are not adjacent.
+        Rows and columns are labelled by the title of the node
+
+        directed -- bool
+                whether to consider the zettel graph as directed (default False)
+        reverse -- bool
+                reverse direction of graph paths (default False)
+                By default, node1 connects to node2 if the ID of node2 is linked
+                in the body text of node1
+
+        Returns graph's adjacency matrix
+        """
         names = [node.title for node in self.nodes]
         N = len(self.nodes)
 
