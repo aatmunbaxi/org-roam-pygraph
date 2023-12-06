@@ -185,9 +185,7 @@ class RoamGraph:
 
         Returns list of roam-node taglists (as a set)
         """
-        tags_query = (
-            "SELECT GROUP_CONCAT(tag) FROM tags GROUP BY node_id ORDER BY node_id ASC;"
-        )
+        tags_query = ("SELECT nodes.id, GROUP_CONCAT(tags.tag) AS tags FROM nodes LEFT JOIN tags ON nodes.id = tags.node_id GROUP BY nodes.id ORDER BY nodes.id ASC;")
         try:
             with sql.connect(dbpath, uri=True) as con:
                 csr = con.cursor()
@@ -310,6 +308,24 @@ class RoamGraph:
                     df.values[i, j] = df.values[j, i] = 1
 
         return df
+
+    def adjacency_list(identifier = "title", directed = False):
+        """
+        Creates edge list of graph.
+        More space efficient for non-sparse graphs
+
+        identifier -- identifier for each node to use in edge list
+                      options are "title", "filename", and "ID"
+        """
+        try:
+            if identifier == "title":
+                i = 0
+            elif identifier == "filename":
+                i = 1
+            elif identifier == "ID":
+                i = 2
+        except NameError:
+            print("Invalid choice of identifier")
 
     def distance_matrix(self, directed=False, reverse=False):
         """
