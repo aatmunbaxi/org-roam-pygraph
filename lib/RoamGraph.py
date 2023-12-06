@@ -191,7 +191,7 @@ class RoamGraph:
                 csr = con.cursor()
                 query = csr.execute(tags_query)
                 clean = lambda s: s.replace('"', "")
-                return [set(map(clean, i[0].split(","))) for i in query.fetchall()]
+                return [set(map(clean, i[1].split(","))) for i in query.fetchall()]
 
         except sql.Error as e:
             print("Connection failed: ", e)
