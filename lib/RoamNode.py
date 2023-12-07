@@ -110,3 +110,16 @@ class RoamNode:
 
     def __repr__(self):
         return f"({self.title}, {self.id})"
+
+    def __lt__(self,other):
+        if not isinstance(other, RoamNode):
+            return NotImplemented
+
+        self.id < other.id
+
+
+    def __gt__(self,other):
+        if not isinstance(other, RoamNode):
+            return NotImplemented
+
+        self.id > other.id
