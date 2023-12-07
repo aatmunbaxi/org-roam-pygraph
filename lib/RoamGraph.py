@@ -310,7 +310,7 @@ class RoamGraph:
 
         return df
 
-    def adjacency_list(identifier = "title", directed = False):
+    def adjacency_list(self, directed = False):
         """
         Creates edge list of graph.
         More space efficient for non-sparse graphs
@@ -318,15 +318,23 @@ class RoamGraph:
         identifier -- identifier for each node to use in edge list
                       options are "title", "filename", and "ID"
         """
-        try:
-            if identifier == "title":
-                i = 0
-            elif identifier == "filename":
-                i = 1
-            elif identifier == "ID":
-                i = 2
-        except NameError:
-            print("Invalid choice of identifier")
+        adj_list = []
+        if directed:
+            for i in range(len(self.nodes)):
+                for j in range(len(self.nodes)):
+                    if self.nodes[i].links(self.nodes[j], directed = directed):
+                        adj_list.append([i,j])
+            return adj_list
+
+        else:
+            for i in range(len(self.nodes)):
+                for j in range(i + 1 , len(self.nodes)):
+                    if self.nodes[i].links(self.nodes[j], directed = directed):
+                        adj_list.append([i,j])
+                        adj_list.append([j,i])
+
+            return adj_list
+
 
     def distance_matrix(self, directed=False, reverse=False):
         """
