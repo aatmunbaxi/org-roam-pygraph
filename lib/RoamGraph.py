@@ -191,7 +191,7 @@ class RoamGraph:
                 csr = con.cursor()
                 query = csr.execute(tags_query)
                 clean = lambda s: s.replace('"', "")
-                match_null = lambda s : set() if not s else s[1].split(",")
+                match_null = lambda s : set() if not s else s.split(",")
                 return [set(map(clean, match_null(i[1]))) for i in query.fetchall()]
 
         except sql.Error as e:
