@@ -56,7 +56,7 @@ adj_matrix[np.isinf(adj_matrix)] = 0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
-nx.draw(G, with_labels = False, node_size=25)
+nx.draw(G, with_labels = False, node_size=25, width=0.2)
 #+end_src
 
 #+RESULTS:
@@ -87,7 +87,7 @@ adj_matrix[np.isinf(adj_matrix)] = 0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
-nx.draw(G,with_labels=False, node_size=25)
+nx.draw(G,with_labels=False, node_size=25,width=0.2)
 plt.savefig(m)
 m
 #+end_src
@@ -109,7 +109,7 @@ df.values[np.isinf(df)] = 0
 #+RESULTS:
 
 This functionality lets you do interesting things based on the human-readable titles of the nodes.
-That is, the titles of you =org-roam= node.
+That is, the titles of your =org-roam= nodes.
 
 For example, I study fusion categories, lets visualize the nodes within 2 degrees of separation of the =fusion category= node with =nx.ego_graph()=.
     #+begin_src python :session python
@@ -122,8 +122,8 @@ ego = nx.ego_graph(H, "fusion category", radius = 2)
 #+begin_src python :session python :exports results :results file :var p="images/fusion_ego.svg"
 plt.cla()
 plt.clf()
-nx.draw(ego, with_labels = False, node_size = 25)
-plt.savefig(l)
+nx.draw(ego, with_labels = False, node_size = 25, width=0.2)
+plt.savefig(p)
 p
 #+end_src
 
@@ -147,7 +147,7 @@ adj_matrix_directed[np.isinf(adj_matrix_directed)] = 0
 G_directed = nx.from_numpy_array(adj_matrix_directed, create_using=nx.DiGraph)
 plt.cla()
 plt.clf()
-nx.draw(G_directed,with_labels=False,node_size=25)
+nx.draw(G_directed, with_labels=False,node_size=25, width=0.2)
 #+end_src
 
 #+RESULTS:
@@ -200,7 +200,7 @@ adj_matrix[np.isinf(adj_matrix)] = 0
 G = nx.from_numpy_array(adj_matrix)
 plt.cla()
 plt.clf()
-nx.draw(G,with_labels=False, node_size = 25)
+nx.draw(G,with_labels=False, node_size = 25, width=0.2)
 plt.savefig(k)
 k
 #+end_src
@@ -208,9 +208,9 @@ k
 #+RESULTS:
 [[file:images/viz_alg-rx.svg]]
 * What to use this for
-Many graph analysis techniques work with just an adjacency matrix.
-After all, an adjacency/incidence matrix is all you need to complete describe a graph.
+Many graph analysis techniques work with just an adjacency matrix or adjacency list.
 
 Originally I wrote this library to run topological data analysis on the org-roam graph, since the goal of TDA is to reveal "hidden structure" in graphs.
-To me this sounded just like the zettelkasten promise to reveal "hidden links" between a large knowledge base.
-A drop-in solution for TDA is =giotto-tda=, which allows you to run persistent homology analysis on directed and undirected graphs.
+To me this sounded similar to the zettelkasten promise to reveal "hidden links" between a large knowledge base.
+A drop-in solution for TDA is =giotto-tda=.
+One could also use the internal representation of the graphs in libraries like =numpy=, =pandas=, =torch=, etc.
