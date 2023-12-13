@@ -1,14 +1,17 @@
-#+title: org-roam-pygraph
+#+title: Your Zettelkasten, usable in Python
 #+author: aatmunbaxi
 #+created: Sat May 06, 2023
 
+[[file:images/COVER.svg]]
+
 * What is this?
-Inspired by [[https://github.com/org-roam/org-roam-ui][org-roam-ui]], this repo provides a python library to convert org-roam collections into graphs workable in numerical python libraries like =numpy=.
+Inspired by [[https://github.com/org-roam/org-roam-ui][org-roam-ui]], this repo provides a python library to convert org-roam collections into graphs workable in numerical python libraries like =numpy= and =pytorch=.
 
 See a demo [[file:demo.org][here]].
 * Features
 - Adjacency matrix of the org-roam network (directed or undirected)
 - Adjacency matrix of network as =pandas= dataframe
+- Adjacency list of network
 - Distance matrix of network (directed or undirected)
 - Filter network by tags--exact match or regex--inclusive or exclusive
 
