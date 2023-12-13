@@ -2,6 +2,7 @@
 #+author: aatmunbaxi
 #+created: Sat May 06, 2023
 
+#+caption: My org-roam database visualized with =networkx=
 [[file:images/COVER.svg]]
 
 * What is this?
