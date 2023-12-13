@@ -20,6 +20,34 @@ See a demo [[file:demo.org][here]].
 - Python 3.7+
 - =scipy=
 - =pandas=
+- =numpy=
 
+* Getting Started
+Clone this repository where you want to use it.
+#+begin_src sh
+git clone https://github.com/aatmunbaxi/org-roam-pygraph
+#+end_src
+
+It is recommended to use a Python virtual environment.
+If you opt to use one, initialize and enter it according to the [[https://docs.python.org/3/library/venv.html][documentation]].
+In Unix-like operating systems, you can verify you are inside the virtual environment if the output of
+#+begin_src shell
+which python
+#+end_src
+points to virtual environment you created.
+
+
+Install the dependencies
+#+begin_src sh
+python -m pip install -r requirements.txt
+#+end_src
+
+You can now create a file in the base of the git repo directory and start using the library by adding
+#+begin_src python
+from lib.RoamGraph import RoamGraph
+#+end_src
+to the imports (see [[file:example.py][example.py]]).
+
+Or you can copy/move the git repo directory to another Python virtual environment.
 * Credits
 - =org-roam-ui=
