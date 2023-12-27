@@ -2,6 +2,9 @@
 #+author: aatmunbaxi
 #+created: Sat May 06, 2023
 
+*Notice: This library is deprecated in favor of [[https://github.com/aatmunbaxi/orgroamtools][orgroamtools]], a more featureful and now-published library that accomplishes much of the same thing in as close to pure Python as I could make it.*
+This repository is kept up for posterity.
+
 #+caption: My org-roam database visualized with =networkx=
 [[file:images/COVER.svg]]
 
